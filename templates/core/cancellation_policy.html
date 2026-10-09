@@ -1,0 +1,750 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancellation & Refund Policy — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1140px; padding: 3rem 1.25rem 6rem 1.25rem;">
+  <!-- Hero Section -->
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #e0f2fe; color: #0284c7; padding: 0.4rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;">
+      <i class="fa-solid fa-shield-check"></i> 100% Transparent & Automated Refunds
+    </div>
+    <h1 style="font-size: 2.6rem; color: var(--secondary); font-weight: 800; margin-bottom: 0.75rem; letter-spacing: -0.5px;">
+      Cancellation & Refund Policy
+    </h1>
+    <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 760px; margin: 0 auto 1.5rem auto; line-height: 1.6;">
+      Clear, government-compliant, and instant cancellation rules for Trains, Flights, Buses, Hotels, Station Retiring Rooms, and Food in Train orders.
+    </p>
+
+    <!-- Key Trust Badges -->
+    <div style="display: flex; justify-content: center; gap: 1.25rem; flex-wrap: wrap; margin-top: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); padding: 0.6rem 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 600;">
+        <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Instant UPI Refunds (15-30 mins)
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); padding: 0.6rem 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 600;">
+        <i class="fa-solid fa-mouse-pointer" style="color: var(--primary);"></i> 1-Click Online Cancellation
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); padding: 0.6rem 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 600;">
+        <i class="fa-solid fa-headset" style="color: #10b981;"></i> 24x7 Cancellation Support
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Live Refund Calculator Tool -->
+  <div class="card" style="padding: 2rem; margin-bottom: 3.5rem; border-top: 5px solid var(--primary); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); box-shadow: var(--shadow-md);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+      <div>
+        <span class="badge badge-primary" style="margin-bottom: 0.35rem;">
+          <i class="fa-solid fa-calculator"></i> Interactive Tool
+        </span>
+        <h2 style="font-size: 1.45rem; color: var(--secondary); margin: 0;">Instant Refund Estimator & Penalty Calculator</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;">Estimate your exact refund amount before making a cancellation</p>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        <i class="fa-solid fa-clock-rotate-left"></i> Updated as per 2026 regulations
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem;">
+      <!-- Service Type Selector -->
+      <div>
+        <label style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.45rem;">
+          1. Select Service
+        </label>
+        <select id="calcService" class="form-input" style="width: 100%; font-weight: 600;" onchange="calculateEstimatedRefund()">
+          <option value="TRAIN">🚆 Train Ticket (IRCTC / Indian Railways)</option>
+          <option value="FLIGHT">✈️ Flight Ticket (Domestic Airlines)</option>
+          <option value="BUS">🚌 Luxury Bus Ticket (RTC & Private)</option>
+          <option value="HOTEL">🏨 Hotel Stay Reservation</option>
+          <option value="RETIRING_ROOM">🛏️ Station Retiring Room / Bed</option>
+          <option value="FOOD">🍱 Food in Train / Meal Order</option>
+        </select>
+      </div>
+
+      <!-- Booking Amount -->
+      <div>
+        <label style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.45rem;">
+          2. Total Booking Amount (₹)
+        </label>
+        <input type="number" id="calcAmount" class="form-input" style="width: 100%; font-weight: 700;" value="1200" min="50" step="50" oninput="calculateEstimatedRefund()">
+      </div>
+
+      <!-- Time of Cancellation -->
+      <div>
+        <label style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.45rem;">
+          3. Cancellation Time
+        </label>
+        <select id="calcTime" class="form-input" style="width: 100%; font-weight: 600;" onchange="calculateEstimatedRefund()">
+          <option value="MORE_THAN_48H">&gt; 48 Hours Before Departure / Check-in</option>
+          <option value="24_TO_48H">24 to 48 Hours Before</option>
+          <option value="4_TO_24H">4 to 24 Hours Before (1 Day Prior)</option>
+          <option value="LESS_THAN_4H">&lt; 4 Hours / Same Day</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Calculator Output Card -->
+    <div style="background: var(--bg-card); border: 2px dashed #93c5fd; border-radius: var(--radius-lg); padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; align-items: center;">
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Estimated Refund</span>
+        <div id="calcRefundDisplay" style="font-size: 2rem; font-weight: 800; color: #046A38; margin-top: 0.2rem;">₹1,080.00</div>
+        <span id="calcPercentDisplay" class="badge badge-success" style="font-size: 0.78rem;">90% Refundable</span>
+      </div>
+
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Cancellation Penalty</span>
+        <div id="calcPenaltyDisplay" style="font-size: 1.4rem; font-weight: 700; color: #dc2626; margin-top: 0.2rem;">₹120.00</div>
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Standard deduction</span>
+      </div>
+
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Estimated Credit Timeline</span>
+        <div id="calcTimelineDisplay" style="font-size: 1rem; font-weight: 700; color: var(--secondary); margin-top: 0.2rem;">
+          <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> UPI: 15-30 Mins
+        </div>
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Cards/NetBanking: 3-5 Working Days</span>
+      </div>
+
+      <div style="text-align: right;">
+        {% if user.is_authenticated %}
+          <a href="{% url 'bookings:history' %}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-ban"></i> Cancel a Booking
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Cancel
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Policy Tabs Navigation -->
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.75rem;">
+    <button class="filter-tab active" onclick="switchPolicyTab('all')" id="tab_all">
+      <i class="fa-solid fa-layer-group"></i> All Services
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('trains')" id="tab_trains">
+      <i class="fa-solid fa-train"></i> Trains
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('flights')" id="tab_flights">
+      <i class="fa-solid fa-plane"></i> Flights
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('buses')" id="tab_buses">
+      <i class="fa-solid fa-bus"></i> Buses
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('hotels')" id="tab_hotels">
+      <i class="fa-solid fa-hotel"></i> Hotels
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('retiring_rooms')" id="tab_retiring_rooms">
+      <i class="fa-solid fa-bed"></i> Retiring Rooms
+    </button>
+    <button class="filter-tab" onclick="switchPolicyTab('food')" id="tab_food">
+      <i class="fa-solid fa-utensils"></i> Food in Train
+    </button>
+  </div>
+
+  <!-- Policy Cards Container -->
+  <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+
+    <!-- 1. TRAINS POLICY -->
+    <div class="card policy-section" id="section_trains" style="padding: 2.25rem; border-left: 5px solid #FF671F;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #fff1e6; color: #FF671F; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-train"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Train Ticket Cancellation & Refund Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">As per Ministry of Railways & IRCTC Standards</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Train ticket cancellations on RailAway follow official Indian Railways passenger fare rules. Refunds are calculated based on the timing of cancellation relative to the scheduled departure / chart preparation.
+      </p>
+
+      <!-- Train Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cancellation Window</th>
+              <th>Refund Amount</th>
+              <th>Deduction / Clerkage Fee</th>
+              <th>Status Eligibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>&gt; 48 Hours</strong> before departure</td>
+              <td><span class="badge badge-success">90% Base + 100% Taxes</span></td>
+              <td>Flat clerkage: ₹60 (2S), ₹120 (SL), ₹180 (3AC/CC), ₹240 (1AC/2AC)</td>
+              <td>Confirmed & RAC</td>
+            </tr>
+            <tr>
+              <td><strong>12 to 48 Hours</strong> before departure</td>
+              <td><span class="badge badge-warning">75% Base + 50% Taxes</span></td>
+              <td>25% of Base Fare or flat clerkage (whichever is higher)</td>
+              <td>Confirmed</td>
+            </tr>
+            <tr>
+              <td><strong>4 to 12 Hours</strong> before chart prep</td>
+              <td><span class="badge badge-warning">50% Base Fare</span></td>
+              <td>50% of Base Fare</td>
+              <td>Confirmed</td>
+            </tr>
+            <tr>
+              <td><strong>&lt; 4 Hours</strong> (Post Charting)</td>
+              <td><span class="badge badge-danger">No Online Refund</span></td>
+              <td>100% fare (TDR can be filed in special cases like train delay &gt; 3h)</td>
+              <td>All</td>
+            </tr>
+            <tr>
+              <td><strong>Waitlist (WL) auto-drop</strong> after charting</td>
+              <td><span class="badge badge-success">100% Full Refund</span></td>
+              <td>₹0 deduction (Automatic 100% reversal to source account)</td>
+              <td>Fully Waitlisted</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; line-height: 1.6;">
+        <strong>💡 Key Train Guidelines:</strong>
+        <ul style="margin: 0.5rem 0 0 1.25rem;">
+          <li><strong>Tatkal Tickets:</strong> Confirmed Tatkal tickets are non-refundable unless the train is cancelled or running &gt;3 hours late.</li>
+          <li><strong>RAC Tickets:</strong> RAC tickets cancelled up to 30 mins before scheduled departure are eligible for refund after deducting clerkage charge.</li>
+          <li><strong>Train Cancelled by Railways:</strong> 100% full refund is automatically credited without any manual cancellation requirement.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2. FLIGHTS POLICY -->
+    <div class="card policy-section" id="section_flights" style="padding: 2.25rem; border-left: 5px solid #0284c7;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-plane"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Flight Ticket Cancellation & Refund Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">DGCA Compliant — IndiGo, Air India, SpiceJet, Akasa Air</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Domestic flight cancellations are processed seamlessly through RailAway in accordance with Directorate General of Civil Aviation (DGCA) guidelines and individual airline fare rules.
+      </p>
+
+      <!-- Flight Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cancellation Timing</th>
+              <th>Refund Amount</th>
+              <th>Airline Cancellation Charges</th>
+              <th>Applicable Fares</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Within 24 Hours</strong> of booking (if journey &gt;7 days away)</td>
+              <td><span class="badge badge-success">100% Full Refund</span></td>
+              <td>₹0 (DGCA 24h Risk-Free Cancellation Window)</td>
+              <td>All Fares</td>
+            </tr>
+            <tr>
+              <td><strong>&gt; 48 Hours</strong> before departure</td>
+              <td><span class="badge badge-success">Base Fare - ₹3,000 + 100% Taxes</span></td>
+              <td>₹3,000 or Base Fare (whichever is lower)</td>
+              <td>Standard Economy</td>
+            </tr>
+            <tr>
+              <td><strong>4 to 48 Hours</strong> before departure</td>
+              <td><span class="badge badge-warning">Base Fare - ₹3,500 + 100% Taxes</span></td>
+              <td>₹3,500 or Base Fare (whichever is lower)</td>
+              <td>Standard Economy</td>
+            </tr>
+            <tr>
+              <td><strong>&lt; 4 Hours</strong> (No-Show window)</td>
+              <td><span class="badge badge-neutral">Taxes & Airport Surcharges (PSF/UDF)</span></td>
+              <td>Base fare & Airline Fuel Surcharge retained</td>
+              <td>Non-Flexi Fares</td>
+            </tr>
+            <tr>
+              <td><strong>Flight Cancelled by Airline</strong></td>
+              <td><span class="badge badge-success">100% Full Refund or Free Alternate Flight</span></td>
+              <td>₹0 penalty</td>
+              <td>All Tickets</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; line-height: 1.6;">
+        <strong>💡 Key Flight Guidelines:</strong>
+        <ul style="margin: 0.5rem 0 0 1.25rem;">
+          <li><strong>Passenger Service Fee (PSF) & User Development Fee (UDF):</strong> Always 100% refundable even in case of No-Show.</li>
+          <li><strong>Ancillary Services:</strong> Pre-paid baggage and seat selection fees are refunded in full upon flight cancellation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3. BUSES POLICY -->
+    <div class="card policy-section" id="section_buses" style="padding: 2.25rem; border-left: 5px solid #046A38;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #dcfce7; color: #046A38; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-bus"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Bus Ticket Cancellation & Refund Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">State RTCs & Verified Private Operators (IntrCity, Zingbus, SRS, VRL)</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Enjoy industry-leading flexible bus cancellations. Operator-specific policies apply with clear cutoffs prior to boarding time.
+      </p>
+
+      <!-- Bus Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cancellation Window</th>
+              <th>Refund Amount</th>
+              <th>Operator Deduction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>&gt; 24 Hours</strong> before boarding time</td>
+              <td><span class="badge badge-success">90% of Total Ticket Fare</span></td>
+              <td>10% operator cancellation fee</td>
+            </tr>
+            <tr>
+              <td><strong>12 to 24 Hours</strong> before boarding time</td>
+              <td><span class="badge badge-warning">75% of Total Ticket Fare</span></td>
+              <td>25% operator cancellation fee</td>
+            </tr>
+            <tr>
+              <td><strong>2 to 12 Hours</strong> before boarding time</td>
+              <td><span class="badge badge-warning">50% of Total Ticket Fare</span></td>
+              <td>50% operator cancellation fee</td>
+            </tr>
+            <tr>
+              <td><strong>&lt; 2 Hours / After Boarding Time</strong></td>
+              <td><span class="badge badge-danger">0% Refund (No-Show)</span></td>
+              <td>100% fare non-refundable</td>
+            </tr>
+            <tr>
+              <td><strong>Bus Cancelled or &gt;2h Departure Delay</strong></td>
+              <td><span class="badge badge-success">100% Full Refund Guaranteed</span></td>
+              <td>₹0 penalty + 10% coupon credit on next journey</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. HOTELS POLICY -->
+    <div class="card policy-section" id="section_hotels" style="padding: 2.25rem; border-left: 5px solid #9333ea;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-hotel"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Hotel Stay Cancellation & Refund Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">RailAway Verified Hotels & Premium Resorts</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Travel with peace of mind. Most hotels on RailAway offer Free Cancellation up to 48 hours prior to check-in.
+      </p>
+
+      <!-- Hotel Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cancellation Timeline</th>
+              <th>Refund Amount</th>
+              <th>Deduction / Policy Terms</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>&ge; 2 Days (&gt;48h)</strong> prior to Check-in date</td>
+              <td><span class="badge badge-success">100% Base Fare + 100% Taxes</span></td>
+              <td>FREE Cancellation (100% room refund)</td>
+            </tr>
+            <tr>
+              <td><strong>1 Day (24-48h)</strong> prior to Check-in date</td>
+              <td><span class="badge badge-warning">80% Base Fare + 100% Taxes</span></td>
+              <td>20% first night charge</td>
+            </tr>
+            <tr>
+              <td><strong>Same Day (&lt;24h)</strong> before 12:00 PM Check-in</td>
+              <td><span class="badge badge-warning">50% Base Fare</span></td>
+              <td>50% first night fee retained by hotelier</td>
+            </tr>
+            <tr>
+              <td><strong>After Check-in / No-Show</strong></td>
+              <td><span class="badge badge-danger">0% Refund</span></td>
+              <td>100% non-refundable after standard check-in time</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. RETIRING ROOMS POLICY -->
+    <div class="card policy-section" id="section_retiring_rooms" style="padding: 2.25rem; border-left: 5px solid #0d9488;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #ccfbf1; color: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-bed"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Station Retiring Rooms & Dormitories Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">IRCTC / Indian Railways Railway Station Rest House Rules</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Retiring room and dormitory bed cancellations are governed by Indian Railways Station Rest House regulations.
+      </p>
+
+      <!-- Retiring Room Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Cancellation Notice</th>
+              <th>Refund Amount</th>
+              <th>IRCTC Deduction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>&gt; 48 Hours</strong> before slot start time</td>
+              <td><span class="badge badge-success">90% Total Amount</span></td>
+              <td>10% cancellation charge</td>
+            </tr>
+            <tr>
+              <td><strong>24 to 48 Hours</strong> before slot start time</td>
+              <td><span class="badge badge-warning">80% Total Amount</span></td>
+              <td>20% cancellation charge</td>
+            </tr>
+            <tr>
+              <td><strong>&lt; 24 Hours / Same Day</strong></td>
+              <td><span class="badge badge-danger">No Refund</span></td>
+              <td>100% deduction (Slot released for spot reservation)</td>
+            </tr>
+            <tr>
+              <td><strong>Connecting Train Cancelled</strong></td>
+              <td><span class="badge badge-success">100% Full Refund</span></td>
+              <td>Full refund upon PNR cancellation verification</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. FOOD IN TRAIN POLICY -->
+    <div class="card policy-section" id="section_food" style="padding: 2.25rem; border-left: 5px solid #ea580c;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">Food in Train (E-Catering) Refund Policy</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">IRCTC Approved Station Catering & Fresh Food Deliveries</span>
+        </div>
+      </div>
+
+      <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Fresh meals cooked and delivered to your train seat come with our 100% Fresh Delivery & Delay Refund Guarantee.
+      </p>
+
+      <!-- Food Slabs Table -->
+      <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Scenario / Condition</th>
+              <th>Refund Amount</th>
+              <th>Processing Timeline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cancelled Before Kitchen Dispatch</strong> (Order Confirmed state)</td>
+              <td><span class="badge badge-success">100% Full Refund</span></td>
+              <td>Instant (15-30 Mins for UPI)</td>
+            </tr>
+            <tr>
+              <td><strong>Train Delayed &gt; 2 Hours / Missed Delivery</strong></td>
+              <td><span class="badge badge-success">100% Full Refund Guaranteed</span></td>
+              <td>Automated refund without asking</td>
+            </tr>
+            <tr>
+              <td><strong>Train Diverted / Cancelled</strong></td>
+              <td><span class="badge badge-success">100% Full Refund</span></td>
+              <td>Automatic cancellation & refund</td>
+            </tr>
+            <tr>
+              <td><strong>Quality / Packaging Complaint</strong> (Reported within 2h)</td>
+              <td><span class="badge badge-primary">100% Refund or Replacement Meal</span></td>
+              <td>Processed by customer care</td>
+            </tr>
+            <tr>
+              <td><strong>Cancelled After Delivery Agent Dispatched</strong></td>
+              <td><span class="badge badge-danger">0% Refund</span></td>
+              <td>Perishable fresh food already prepared</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to Cancel Step-by-Step Guide -->
+  <div class="card" style="padding: 2.5rem; margin-top: 3.5rem; background: #faf5ff; border: 1px solid #e9d5ff;">
+    <h3 style="font-size: 1.4rem; color: #6b21a8; margin-bottom: 1.5rem; text-align: center;">
+      <i class="fa-solid fa-list-check"></i> How to Cancel Any Reservation in 3 Simple Steps
+    </h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+      <div style="background: #ffffff; padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border-top: 3px solid #9333ea;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: #9333ea; margin-bottom: 0.5rem;">01</div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--secondary);">Go to My Bookings</h4>
+        <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+          Log into your RailAway account and open <a href="{% url 'bookings:history' %}" style="color: var(--primary); font-weight: 600;">My Booking History</a> from the top navigation.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border-top: 3px solid #9333ea;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: #9333ea; margin-bottom: 0.5rem;">02</div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--secondary);">Click "Cancel" & Review Refund</h4>
+        <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+          Click the red cancellation icon next to your active booking to review the live refund breakdown and reason prompt.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border-top: 3px solid #9333ea;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: #9333ea; margin-bottom: 0.5rem;">03</div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--secondary);">Instant Refund Confirmation</h4>
+        <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+          Confirm cancellation to instantly release seats/rooms and receive the cancellation slip with the exact refund transaction reference.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frequently Asked Questions (FAQ) Section -->
+  <div style="margin-top: 3.5rem;">
+    <h3 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 1.5rem; text-align: center;">
+      <i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Frequently Asked Questions
+    </h3>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 860px; margin: 0 auto;">
+      <div class="card" style="padding: 1.25rem 1.5rem;">
+        <h4 style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 0.4rem;">
+          How long does it take for the refund to reflect in my bank account?
+        </h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+          UPI and RailAway Wallet refunds are processed instantly (typically 15 to 30 minutes). Debit/Credit Card and NetBanking refunds are credited within 3 to 5 business days depending on your bank's settlement cycle.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 1.25rem 1.5rem;">
+        <h4 style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 0.4rem;">
+          Can I cancel tickets for a single passenger in a group reservation?
+        </h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+          Yes! Partial passenger cancellation is fully supported. You can select specific passengers to cancel while keeping the remaining passengers confirmed.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 1.25rem 1.5rem;">
+        <h4 style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 0.4rem;">
+          What happens if my train or flight is cancelled by the operator?
+        </h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+          You receive a 100% full refund with zero deductions. RailAway automatically initiates the refund to your original payment method without requiring you to file a manual claim.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 1.25rem 1.5rem;">
+        <h4 style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 0.4rem;">
+          Is the convenience fee refundable upon cancellation?
+        </h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+          Standard gateway convenience fees are non-refundable for user-initiated cancellations. However, if the trip is cancelled by the airline, railway, or bus operator, 100% of all charges including fees are refunded.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 4rem; padding: 2.5rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+    <h3 style="font-size: 1.3rem; color: var(--secondary); margin-bottom: 0.5rem;">Have questions about an existing reservation?</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Our customer care team is available 24 hours a day to assist you.</p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'bookings:history' %}" class="btn btn-primary">
+        <i class="fa-solid fa-ticket"></i> View My Bookings
+      </a>
+      <a href="{% url 'core:contact' %}" class="btn btn-outline">
+        <i class="fa-solid fa-headset"></i> Contact 24x7 Support
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Refund Estimator Script -->
+<script>
+function calculateEstimatedRefund() {
+  const service = document.getElementById('calcService').value;
+  const amount = parseFloat(document.getElementById('calcAmount').value) || 0;
+  const time = document.getElementById('calcTime').value;
+
+  let refundPercent = 0.90;
+  let penaltyText = "10% standard deduction";
+  let timeline = '<i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> UPI: 15-30 Mins';
+
+  if (service === 'TRAIN') {
+    if (time === 'MORE_THAN_48H') {
+      refundPercent = 0.90;
+      penaltyText = "Clerkage / 10% base deduction";
+    } else if (time === '24_TO_48H') {
+      refundPercent = 0.75;
+      penaltyText = "25% base fare deduction";
+    } else if (time === '4_TO_24H') {
+      refundPercent = 0.50;
+      penaltyText = "50% base fare deduction";
+    } else {
+      refundPercent = 0.00;
+      penaltyText = "Post-charting (No online refund)";
+    }
+  } else if (service === 'FLIGHT') {
+    if (time === 'MORE_THAN_48H') {
+      refundPercent = Math.max(0, (amount - 3000) / amount);
+      if (amount <= 3000) refundPercent = 0.20; // taxes
+      penaltyText = "₹3,000 airline fee (Taxes 100% refunded)";
+    } else if (time === '24_TO_48H' || time === '4_TO_24H') {
+      refundPercent = Math.max(0, (amount - 3500) / amount);
+      if (amount <= 3500) refundPercent = 0.15;
+      penaltyText = "₹3,500 airline fee (Taxes 100% refunded)";
+    } else {
+      refundPercent = 0.15; // taxes only
+      penaltyText = "No-show fee (Only PSF/UDF taxes refunded)";
+    }
+  } else if (service === 'BUS') {
+    if (time === 'MORE_THAN_48H' || time === '24_TO_48H') {
+      refundPercent = 0.90;
+      penaltyText = "10% operator cancellation fee";
+    } else if (time === '4_TO_24H') {
+      refundPercent = 0.75;
+      penaltyText = "25% operator cancellation fee";
+    } else {
+      refundPercent = 0.50;
+      penaltyText = "50% operator cancellation fee";
+    }
+  } else if (service === 'HOTEL') {
+    if (time === 'MORE_THAN_48H') {
+      refundPercent = 1.00;
+      penaltyText = "FREE Cancellation (100% room refund)";
+    } else if (time === '24_TO_48H') {
+      refundPercent = 0.80;
+      penaltyText = "20% first night fee";
+    } else {
+      refundPercent = 0.50;
+      penaltyText = "50% same-day retention charge";
+    }
+  } else if (service === 'RETIRING_ROOM') {
+    if (time === 'MORE_THAN_48H') {
+      refundPercent = 0.90;
+      penaltyText = "10% IRCTC cancellation fee";
+    } else if (time === '24_TO_48H') {
+      refundPercent = 0.80;
+      penaltyText = "20% IRCTC cancellation fee";
+    } else {
+      refundPercent = 0.00;
+      penaltyText = "Non-refundable on same day";
+    }
+  } else if (service === 'FOOD') {
+    if (time === 'MORE_THAN_48H' || time === '24_TO_48H' || time === '4_TO_24H') {
+      refundPercent = 1.00;
+      penaltyText = "100% Full Refund prior to dispatch";
+    } else {
+      refundPercent = 0.00;
+      penaltyText = "Perishable food prepared for train";
+    }
+  }
+
+  const refundAmount = Math.max(0, Math.round(amount * refundPercent * 100) / 100);
+  const penaltyAmount = Math.max(0, Math.round((amount - refundAmount) * 100) / 100);
+  const percentDisplay = Math.round((refundAmount / (amount || 1)) * 100);
+
+  document.getElementById('calcRefundDisplay').textContent = `₹${refundAmount.toFixed(2)}`;
+  document.getElementById('calcPenaltyDisplay').textContent = `₹${penaltyAmount.toFixed(2)}`;
+  document.getElementById('calcPercentDisplay').textContent = `${percentDisplay}% Refundable`;
+  
+  if (percentDisplay >= 80) {
+    document.getElementById('calcPercentDisplay').className = "badge badge-success";
+  } else if (percentDisplay > 0) {
+    document.getElementById('calcPercentDisplay').className = "badge badge-warning";
+  } else {
+    document.getElementById('calcPercentDisplay').className = "badge badge-danger";
+  }
+}
+
+function switchPolicyTab(service) {
+  const tabs = document.querySelectorAll('.filter-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  
+  const targetTab = document.getElementById(`tab_${service}`);
+  if (targetTab) targetTab.classList.add('active');
+
+  const sections = document.querySelectorAll('.policy-section');
+  if (service === 'all') {
+    sections.forEach(s => s.style.display = 'block');
+  } else {
+    sections.forEach(s => {
+      if (s.id === `section_${service}`) {
+        s.style.display = 'block';
+        s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        s.style.display = 'none';
+      }
+    });
+  }
+
+  // Update calculator selector
+  const serviceMap = {
+    'trains': 'TRAIN',
+    'flights': 'FLIGHT',
+    'buses': 'BUS',
+    'hotels': 'HOTEL',
+    'retiring_rooms': 'RETIRING_ROOM',
+    'food': 'FOOD'
+  };
+  if (serviceMap[service]) {
+    document.getElementById('calcService').value = serviceMap[service];
+    calculateEstimatedRefund();
+  }
+}
+
+// Initial calculation on page load
+document.addEventListener('DOMContentLoaded', function() {
+  calculateEstimatedRefund();
+  const urlParams = new URLSearchParams(window.location.search);
+  const srv = urlParams.get('service');
+  if (srv) {
+    switchPolicyTab(srv);
+  }
+});
+</script>
+{% endblock %}

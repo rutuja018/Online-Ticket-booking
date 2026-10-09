@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Trains & Schedules — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Railway Schedules Inventory</h1>
+      <p>Active train routes, base class fares, and seat quotas</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+      </a>
+      <a href="/admin/railways/trainschedule/add/" target="_blank" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add New Train Schedule
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Train Number</th>
+          <th>Train Name</th>
+          <th>Route (From &rarr; To)</th>
+          <th>Journey Date</th>
+          <th>Timings</th>
+          <th>Fares (SL / 3A)</th>
+          <th>Status</th>
+          <th>Django Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td><strong style="color: var(--primary);">{{ s.train.train_number }}</strong></td>
+          <td>
+            <strong>{{ s.train.name }}</strong>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ s.train.get_train_type_display }}</div>
+          </td>
+          <td>{{ s.source_station.code }} &rarr; {{ s.destination_station.code }}</td>
+          <td>{{ s.journey_date }}</td>
+          <td>{{ s.departure_time|time:"H:i" }} - {{ s.arrival_time|time:"H:i" }}</td>
+          <td>₹{{ s.fare_sleeper }} / ₹{{ s.fare_ac3 }}</td>
+          <td>
+            {% if s.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/railways/trainschedule/{{ s.id }}/change/" target="_blank" class="btn btn-sm btn-outline">
+              Edit in Admin
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

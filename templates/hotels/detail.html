@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hotel.name }} — {{ hotel.city }} — Book on RailAway{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hotel-hero-gallery {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    max-height: 460px;
+  }
+  .gallery-main {
+    height: 100%;
+    min-height: 380px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .gallery-main img:hover {
+    transform: scale(1.03);
+  }
+  .gallery-thumbs {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+  }
+  .gallery-thumb {
+    height: 100%;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+  .gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .gallery-thumb img:hover {
+    transform: scale(1.05);
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .room-card {
+    background: #ffffff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    grid-template-columns: 240px 1fr 200px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+  }
+  .room-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+  }
+  .room-card-img-wrap {
+    height: 100%;
+    min-height: 180px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .room-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .room-card-body {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .room-card-pricing {
+    padding: 1.25rem 1.5rem;
+    background: #f8fafc;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .amenity-pill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .amenity-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--secondary);
+  }
+  .amenity-pill i {
+    color: var(--primary);
+    font-size: 1.1rem;
+  }
+  @media (max-width: 992px) {
+    .hotel-hero-gallery {
+      grid-template-columns: 1fr;
+      max-height: none;
+    }
+    .gallery-thumbs {
+      display: none;
+    }
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+    .room-card {
+      grid-template-columns: 1fr;
+    }
+    .room-card-pricing {
+      border-left: none;
+      border-top: 1px solid var(--border);
+      flex-direction: row;
+      align-items: center;
+      text-align: left;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+
+  <!-- Breadcrumb -->
+  <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+    <a href="{% url 'core:home' %}" style="color: var(--text-muted);">Home</a> &rsaquo;
+    <a href="{% url 'hotels:index' %}" style="color: var(--text-muted);">Hotels</a> &rsaquo;
+    <a href="{% url 'hotels:search' %}?city={{ hotel.city }}" style="color: var(--text-muted);">{{ hotel.city }}</a> &rsaquo;
+    <strong style="color: var(--secondary);">{{ hotel.name }}</strong>
+  </div>
+
+  <!-- Header Section -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap;">
+        <span style="color: #F59E0B; font-size: 1.1rem; letter-spacing: 2px;">
+          {% for _ in hotel.star_range %}★{% endfor %}
+        </span>
+        <span class="badge badge-primary">{{ hotel.get_hotel_type_display }}</span>
+        {% if hotel.is_featured %}
+          <span class="badge" style="background: #0F172A; color: #fff;"><i class="fa-solid fa-crown" style="color: #F59E0B;"></i> Featured Luxury</span>
+        {% endif %}
+      </div>
+
+      <h1 style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 0.4rem;">{{ hotel.name }}</h1>
+      <p style="font-size: 0.95rem; color: var(--text-muted);">
+        <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> {{ hotel.address }}
+        {% if hotel.landmark %}&bull; <span style="color: var(--secondary);">{{ hotel.landmark }}</span>{% endif %}
+      </p>
+    </div>
+
+    <!-- Rating Summary Box -->
+    <div style="display: flex; align-items: center; gap: 0.75rem; background: #fff; padding: 0.85rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+      <div style="text-align: right;">
+        <div style="font-size: 1rem; font-weight: 800; color: var(--secondary);">{{ hotel.rating_text }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">{{ hotel.review_count }} Verified Reviews</div>
+      </div>
+      <div class="badge {{ hotel.rating_badge_class }}" style="font-size: 1.3rem; font-weight: 800; padding: 0.45rem 0.8rem; border-radius: var(--radius-md);">
+        {{ hotel.guest_rating }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Photo Gallery -->
+  <div class="hotel-hero-gallery">
+    <div class="gallery-main">
+      <img src="{{ hotel.main_image }}" alt="{{ hotel.name }}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&auto=format&fit=crop&q=80';">
+    </div>
+    <div class="gallery-thumbs">
+      {% for img in hotel.gallery_images.all|slice:":2" %}
+        <div class="gallery-thumb">
+          <img src="{{ img.image_url }}" alt="{{ img.caption|default:hotel.name }}" onerror="this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80';">
+        </div>
+      {% empty %}
+        <div class="gallery-thumb">
+          <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80" alt="Room preview">
+        </div>
+        <div class="gallery-thumb">
+          <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop&q=80" alt="Courtyard preview">
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Dates Modifier Banner -->
+  <div class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; background: linear-gradient(135deg, #FFF7ED 0%, #EFF6FF 100%); border-color: #FED7AA;">
+    <form method="GET" action="{% url 'hotels:detail' hotel_id=hotel.id %}" style="display: flex; gap: 1.25rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">CHECK-IN DATE</span>
+          <div style="font-weight: 700; font-size: 1.05rem; color: var(--secondary);">
+            <i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> {{ check_in }}
+          </div>
+        </div>
+        <div style="font-size: 1.2rem; color: var(--text-light);">&rarr;</div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">CHECK-OUT DATE</span>
+          <div style="font-weight: 700; font-size: 1.05rem; color: var(--secondary);">
+            <i class="fa-solid fa-calendar-check" style="color: #046A38;"></i> {{ check_out }}
+          </div>
+        </div>
+        <div style="padding-left: 1rem; border-left: 1px solid #fed7aa;">
+          <span class="badge badge-neutral" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">
+            <i class="fa-solid fa-moon"></i> {{ nights }} Night{% if nights > 1 %}s{% endif %} &bull; {{ rooms_count }} Room &bull; {{ guests_count }} Guests
+          </span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <input type="hidden" name="check_in" value="{{ check_in }}">
+        <input type="hidden" name="check_out" value="{{ check_out }}">
+        <input type="hidden" name="rooms" value="{{ rooms_count }}">
+        <input type="hidden" name="guests" value="{{ guests_count }}">
+        <a href="#roomsSection" class="btn btn-primary" style="font-weight: 700;">
+          <i class="fa-solid fa-bed"></i> Choose Room &rarr;
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Layout: Left (Rooms & Info) + Right (Quick Sticky Reserve) -->
+  <div class="detail-grid">
+    <div>
+      <!-- 1. AVAILABLE ROOMS SECTION -->
+      <section id="roomsSection" style="margin-bottom: 3.5rem; scroll-margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+          <div>
+            <span class="badge badge-primary" style="margin-bottom: 0.35rem;"><i class="fa-solid fa-door-open"></i> LIVE INVENTORY</span>
+            <h2 style="font-size: 1.75rem; color: var(--secondary);">Available Room Categories</h2>
+          </div>
+          <span style="font-size: 0.88rem; color: var(--text-muted);">
+            Rates shown for <strong>{{ nights }} night{% if nights > 1 %}s{% endif %}</strong> stay
+          </span>
+        </div>
+
+        {% if room_data %}
+          {% for r_item in room_data %}
+            {% with r=r_item.room %}
+            <div class="room-card">
+              <!-- Room Photo -->
+              <div class="room-card-img-wrap">
+                <img src="{{ r.image_url|default:'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&auto=format&fit=crop&q=80' }}" alt="{{ r.room_type }}" class="room-card-img" onerror="this.src='https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&auto=format&fit=crop&q=80';">
+              </div>
+
+              <!-- Room Details -->
+              <div class="room-card-body">
+                <div>
+                  <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.35rem;">{{ r.room_type }}</h3>
+                  
+                  <!-- Specs -->
+                  <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; flex-wrap: wrap;">
+                    <span><i class="fa-solid fa-bed" style="color: var(--primary);"></i> {{ r.bed_type }}</span>
+                    <span><i class="fa-solid fa-maximize" style="color: var(--primary);"></i> {{ r.room_size_sqft }} sq.ft</span>
+                    <span><i class="fa-solid fa-user-group" style="color: var(--primary);"></i> Max {{ r.max_occupancy }} Guests</span>
+                  </div>
+
+                  <!-- Inclusions -->
+                  <div style="display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem; margin-bottom: 0.75rem;">
+                    {% if r.has_free_breakfast %}
+                      <div style="color: #046A38; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Free Delicious Buffet Breakfast Included</div>
+                    {% endif %}
+                    {% if r.has_free_cancellation %}
+                      <div style="color: #000080; font-weight: 600;"><i class="fa-solid fa-shield-check"></i> Free Cancellation up to 24h prior to check-in</div>
+                    {% endif %}
+                    {% if r.has_city_view %}
+                      <div style="color: var(--secondary);"><i class="fa-solid fa-eye" style="color: var(--primary);"></i> Scenic City / Garden View</div>
+                    {% endif %}
+                    {% if r.has_balcony %}
+                      <div style="color: var(--secondary);"><i class="fa-solid fa-tree" style="color: var(--primary);"></i> Private Attached Balcony</div>
+                    {% endif %}
+                  </div>
+
+                  <!-- Custom Facilities -->
+                  {% if r.facilities_list %}
+                    <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                      {% for f in r.facilities_list|slice:":3" %}
+                        <span class="badge badge-neutral" style="font-size: 0.72rem; text-transform: none;">{{ f }}</span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Stock tag -->
+                <div style="margin-top: 0.75rem;">
+                  {% if r.available_rooms <= 3 %}
+                    <span class="badge badge-danger" style="font-size: 0.75rem;"><i class="fa-solid fa-fire"></i> Only {{ r.available_rooms }} rooms left at this rate!</span>
+                  {% else %}
+                    <span class="badge badge-success" style="font-size: 0.75rem;"><i class="fa-solid fa-check"></i> Available ({{ r.available_rooms }} rooms)</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Pricing & Book Action -->
+              <div class="room-card-pricing">
+                <div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">Per Night Rate</div>
+                  <div style="font-size: 1.55rem; font-weight: 800; color: var(--secondary); line-height: 1.1;">
+                    ₹{{ r.price_per_night }}
+                  </div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-top: 0.3rem;">
+                    ₹{{ r_item.base_stay }} for {{ nights }} Night{% if nights > 1 %}s{% endif %}
+                  </div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">+ ₹{{ r_item.taxes }} GST (12%)</div>
+                </div>
+
+                <div style="width: 100%;">
+                  {% if r_item.is_available %}
+                    <a href="{% url 'hotels:book_room' hotel_id=hotel.id room_id=r.id %}?check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms_count }}&guests={{ guests_count }}" class="btn btn-primary" style="width: 100%; font-weight: 700;" id="reserveRoomBtn_{{ r.id }}">
+                      Book Room &rarr;
+                    </a>
+                  {% else %}
+                    <button class="btn btn-outline" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>
+                      Sold Out
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endwith %}
+          {% endfor %}
+        {% else %}
+          <div class="card" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            No rooms currently active for this hotel. Please check other dates.
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- 2. HOTEL AMENITIES & FACILITIES -->
+      <section style="margin-bottom: 3.5rem;">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1.25rem;">
+          <i class="fa-solid fa-bell-concierge" style="color: var(--primary);"></i> Hotel Amenities & Services
+        </h2>
+        <div class="amenity-pill-grid">
+          {% for am in hotel.amenities.all %}
+            <div class="amenity-pill">
+              <i class="{{ am.icon_class }}"></i>
+              <span>{{ am.name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- 3. ABOUT PROPERTY & POLICIES -->
+      <section style="margin-bottom: 3.5rem;">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">
+          <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> About {{ hotel.name }}
+        </h2>
+        <p style="font-size: 0.95rem; color: var(--secondary-muted); line-height: 1.7; margin-bottom: 1.5rem;">
+          {{ hotel.description }}
+        </p>
+
+        <!-- Policies Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+          <div class="card" style="padding: 1.25rem;">
+            <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.5rem;"><i class="fa-regular fa-clock" style="color: var(--primary);"></i> Timings</h4>
+            <div style="font-size: 0.88rem; color: var(--secondary-muted);">
+              <strong>Check-in:</strong> {{ hotel.check_in_time|time:"H:i" }} hrs<br>
+              <strong>Check-out:</strong> {{ hotel.check_out_time|time:"H:i" }} hrs
+            </div>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved" style="color: #046A38;"></i> Cancellation Policy</h4>
+            <div style="font-size: 0.85rem; color: var(--secondary-muted); line-height: 1.5;">
+              {{ hotel.cancellation_policy }}
+            </div>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.5rem;"><i class="fa-solid fa-id-card" style="color: #000080;"></i> House Rules & ID</h4>
+            <div style="font-size: 0.85rem; color: var(--secondary-muted); line-height: 1.5;">
+              {{ hotel.house_rules }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. GUEST REVIEWS -->
+      <section style="margin-bottom: 3rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.5rem; color: var(--secondary); margin: 0;">
+            <i class="fa-solid fa-star" style="color: #F59E0B;"></i> Verified Guest Reviews ({{ hotel.review_count }})
+          </h2>
+          <div class="badge badge-success" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;">
+            Overall Score: {{ avg_rating }} / 5.0
+          </div>
+        </div>
+
+        {% if reviews %}
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for rev in reviews %}
+              <div class="card" style="padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-subtle); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                      {{ rev.user.first_name|first|default:rev.user.username|first|upper }}
+                    </div>
+                    <div>
+                      <div style="font-weight: 700; font-size: 0.95rem;">{{ rev.user.first_name|default:rev.user.username }}</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-circle-check" style="color: #046A38;"></i> Verified Stay</div>
+                    </div>
+                  </div>
+                  <div class="badge badge-primary" style="font-size: 0.8rem;">
+                    ★ {{ rev.rating }}.0
+                  </div>
+                </div>
+                <h4 style="font-size: 1.05rem; margin-bottom: 0.35rem; color: var(--secondary);">{{ rev.title }}</h4>
+                <p style="font-size: 0.88rem; color: var(--secondary-muted); line-height: 1.5;">
+                  {{ rev.comment }}
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  Reviewed on {{ rev.created_at|date:"d M Y" }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </section>
+    </div>
+
+    <!-- Right Column: Quick Sticky Card -->
+    <aside style="position: sticky; top: 1.5rem;">
+      <div class="card" style="padding: 1.5rem; border-top: 4px solid var(--primary); box-shadow: var(--shadow-md);">
+        <span class="badge badge-primary" style="margin-bottom: 0.5rem;">BEST PRICE GUARANTEE</span>
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.25rem;">Reserve Your Stay</h3>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          {{ hotel.name }}
+        </div>
+
+        <div style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; margin-bottom: 1.25rem; font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Check-in:</span>
+            <strong>{{ check_in }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Check-out:</span>
+            <strong>{{ check_out }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Duration:</span>
+            <strong>{{ nights }} Night{% if nights > 1 %}s{% endif %}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Rooms & Guests:</span>
+            <strong>{{ rooms_count }} Room &bull; {{ guests_count }} Guests</strong>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Starting from</div>
+          <div style="font-size: 1.85rem; font-weight: 800; color: var(--secondary);">
+            ₹{{ hotel.min_price }} <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">/ night</span>
+          </div>
+        </div>
+
+        <a href="#roomsSection" class="btn btn-primary" style="width: 100%; height: 46px; font-weight: 700;">
+          Select Room Below &darr;
+        </a>
+
+        <!-- Trust Badges -->
+        <div style="margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.4rem;">
+          <div><i class="fa-solid fa-lock" style="color: #046A38;"></i> 100% Safe & Instant Confirmation</div>
+          <div><i class="fa-solid fa-receipt" style="color: #000080;"></i> Official Printable E-Voucher</div>
+          <div><i class="fa-solid fa-headset" style="color: #FF671F;"></i> 24x7 Customer Support Assistance</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

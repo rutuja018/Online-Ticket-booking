@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}RailAway Login{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v={% now 'U' %}">
+<style>
+  /* Bulletproof Auth Card & Background Styles */
+  .irctc-auth-page-bg {
+    min-height: calc(100vh - 120px);
+    background: linear-gradient(180deg, #18122B 0%, #2A244D 20%, #393053 45%, #4C3F78 70%, #E07A5F 90%, #F4A261 100%);
+    position: relative;
+    padding: 3.5rem 1.25rem 5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Monument / Temple Silhouette Skyline in Background */
+  .irctc-skyline-bg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 280px;
+    background-repeat: repeat-x;
+    background-position: bottom center;
+    background-size: contain;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' fill='%2318122B'%3E%3Cpath d='M0,300 L0,240 L40,240 L40,200 L50,180 L60,200 L60,240 L120,240 L130,220 L140,220 L150,120 L155,90 L160,50 L165,20 L170,50 L175,90 L180,120 L190,220 L200,220 L210,240 L280,240 L280,210 L300,190 L320,210 L320,240 L380,240 L390,160 L400,100 L410,60 L415,30 L420,60 L430,100 L440,160 L450,240 L520,240 L530,220 L550,220 L560,240 L640,240 L650,170 L660,110 L670,40 L675,10 L680,40 L690,110 L700,170 L710,240 L780,240 L790,200 L810,200 L820,240 L880,240 L890,140 L900,80 L905,40 L910,80 L920,140 L930,240 L1000,240 L1010,210 L1030,210 L1040,240 L1100,240 L1110,160 L1120,90 L1125,50 L1130,90 L1140,160 L1150,240 L1200,240 L1200,300 Z'/%3E%3C/svg%3E");
+  }
+
+  .irctc-auth-wrapper {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 10;
+    margin: 0 auto;
+  }
+
+  .irctc-card {
+    background: #FFFFFF !important;
+    border-radius: 20px !important;
+    padding: 2.25rem 2.25rem 1.75rem 2.25rem !important;
+    position: relative !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Yellow Floating Close Button */
+  .irctc-close-btn {
+    position: absolute !important;
+    top: -14px !important;
+    right: -14px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+    color: #FFFFFF !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 3.5px solid #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.55), 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    cursor: pointer !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s !important;
+    z-index: 25 !important;
+    text-decoration: none !important;
+  }
+
+  .irctc-close-btn:hover {
+    transform: scale(1.12) rotate(90deg) !important;
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Pill Switcher */
+  .irctc-tab-switch-container {
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 1.75rem !important;
+    margin-top: 0.25rem !important;
+    width: 100% !important;
+  }
+
+  .irctc-tab-switch {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #F8FAFC !important;
+    border: 1.5px solid #E2E8F0 !important;
+    border-radius: 9999px !important;
+    padding: 4px !important;
+    width: 100% !important;
+    max-width: 370px !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+    box-sizing: border-box !important;
+  }
+
+  .irctc-tab-pill {
+    flex: 1 !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0.65rem 0.85rem !important;
+    border-radius: 9999px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .irctc-tab-pill.active {
+    background: linear-gradient(135deg, #FFB800 0%, #F59E0B 100%) !important;
+    color: #0F172A !important;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4) !important;
+    font-weight: 800 !important;
+  }
+
+  /* Form Elements */
+  .irctc-form-group {
+    margin-bottom: 1.25rem !important;
+    text-align: left !important;
+  }
+
+  .irctc-label {
+    display: block !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
+    margin-bottom: 0.45rem !important;
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .irctc-input-wrap {
+    position: relative !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .irctc-input {
+    width: 100% !important;
+    height: 48px !important;
+    border: 1.5px solid #CBD5E1 !important;
+    border-radius: 8px !important;
+    padding: 0 46px 0 16px !important;
+    font-size: 0.96rem !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: #0F172A !important;
+    background: #FFFFFF !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    box-sizing: border-box !important;
+  }
+
+  .irctc-input::placeholder {
+    color: #94A3B8 !important;
+    font-weight: 400 !important;
+  }
+
+  .irctc-input:focus {
+    outline: none !important;
+    border-color: #F59E0B !important;
+    box-shadow: 0 0 0 3.5px rgba(245, 158, 11, 0.22) !important;
+  }
+
+  .irctc-input-icon {
+    position: absolute !important;
+    right: 16px !important;
+    color: #1E293B !important;
+    font-size: 1.1rem !important;
+    pointer-events: none !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Golden Pill Submit Button */
+  .irctc-btn-wrap {
+    text-align: center !important;
+    margin: 1.6rem 0 0.85rem 0 !important;
+  }
+
+  .irctc-btn-pill {
+    display: inline-block !important;
+    min-width: 145px !important;
+    padding: 0.65rem 2.85rem !important;
+    background: linear-gradient(135deg, #FFB800 0%, #F59E0B 100%) !important;
+    color: #0F172A !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    border-radius: 9999px !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45) !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    text-align: center !important;
+  }
+
+  .irctc-btn-pill:hover {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55) !important;
+    color: #000000 !important;
+  }
+
+  .irctc-divider {
+    height: 1px !important;
+    background: #E2E8F0 !important;
+    margin: 1.35rem 0 1rem 0 !important;
+    border: none !important;
+  }
+
+  .irctc-card-footer {
+    text-align: center !important;
+    font-size: 0.92rem !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+  }
+
+  .irctc-link {
+    color: #0284C7 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+  }
+
+  .irctc-link:hover {
+    color: #0369A1 !important;
+    text-decoration: underline !important;
+  }
+
+  .irctc-demo-box {
+    background: #F8FAFC !important;
+    border: 1px dashed #CBD5E1 !important;
+    border-radius: 12px !important;
+    padding: 0.75rem 0.9rem !important;
+    margin-top: 1.1rem !important;
+    text-align: left !important;
+  }
+
+  .irctc-demo-header {
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+    margin-bottom: 0.4rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+  }
+
+  .irctc-demo-buttons {
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .irctc-demo-chip {
+    flex: 1 !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 6px !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.3rem !important;
+  }
+
+  .irctc-demo-chip:hover {
+    background: #FFFBEB !important;
+    border-color: #F59E0B !important;
+    color: #B45309 !important;
+  }
+
+  .irctc-guest-hint {
+    font-size: 0.82rem !important;
+    color: #046A38 !important;
+    background: #ECFDF5 !important;
+    border: 1px solid #A7F3D0 !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 0.75rem !important;
+    text-align: center !important;
+    margin-top: 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.4rem !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="irctc-auth-page-bg">
+  <!-- Temple Silhouette Graphic -->
+  <div class="irctc-skyline-bg"></div>
+
+  <div class="irctc-auth-wrapper">
+    <div class="irctc-card">
+      
+      <!-- Prominent Yellow Circular Close Button -->
+      <a href="{% if next %}{{ next }}{% else %}{% url 'core:home' %}{% endif %}" class="irctc-close-btn" aria-label="Close" title="Close and return home">
+        <i class="fa-solid fa-xmark"></i>
+      </a>
+
+      <!-- Pill Toggle Selector -->
+      <div class="irctc-tab-switch-container">
+        <div class="irctc-tab-switch" role="tablist">
+          <button type="button" class="irctc-tab-pill active" id="pagePillIrctcTab" onclick="window.switchPageTab('pageLoginFormPanel')" role="tab" aria-selected="true">
+            RailAway Login
+          </button>
+          <button type="button" class="irctc-tab-pill" id="pagePillGuestTab" onclick="window.switchPageTab('pageGuestFormPanel')" role="tab" aria-selected="false">
+            Guest User Login
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: RailAway / Registered User Login -->
+      <div class="irctc-tab-panel active" id="pageLoginFormPanel" role="tabpanel">
+        <form method="POST" action="{% url 'accounts:login' %}" id="pageLoginForm">
+          {% csrf_token %}
+          {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+          {% endif %}
+
+          <!-- User Name Field -->
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="pageUsername">User Name</label>
+            <div class="irctc-input-wrap">
+              <input type="text" name="username" id="pageUsername" class="irctc-input" placeholder="Enter Your User Name" required autofocus autocomplete="username">
+              <i class="fa-solid fa-user irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="pagePassword">Password</label>
+            <div class="irctc-input-wrap">
+              <input type="password" name="password" id="pagePassword" class="irctc-input" placeholder="Enter Your Password" required autocomplete="current-password">
+              <i class="fa-solid fa-key irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <!-- Centered Golden Pill Action Button -->
+          <div class="irctc-btn-wrap">
+            <button type="submit" class="irctc-btn-pill" id="pageLoginSubmitBtn">
+              Login
+            </button>
+          </div>
+        </form>
+
+        <!-- Demo Account Quick Select Box -->
+        <div class="irctc-demo-box">
+          <div class="irctc-demo-header">
+            <i class="fa-solid fa-bolt" style="color: #F59E0B;"></i> <span>Quick Demo Sign In:</span>
+          </div>
+          <div class="irctc-demo-buttons">
+            <button type="button" class="irctc-demo-chip" onclick="document.getElementById('pageUsername').value='customer'; document.getElementById('pagePassword').value='password123';">
+              <i class="fa-solid fa-user"></i> Customer (Demo)
+            </button>
+            <button type="button" class="irctc-demo-chip" onclick="document.getElementById('pageUsername').value='admin'; document.getElementById('pagePassword').value='admin123';">
+              <i class="fa-solid fa-shield-halved"></i> Admin
+            </button>
+          </div>
+        </div>
+
+        <!-- Divider Line -->
+        <div class="irctc-divider"></div>
+
+        <!-- Footer Links -->
+        <div class="irctc-card-footer">
+          Not a member? <a href="{% url 'accounts:register' %}" class="irctc-link">Sign Up</a>
+          <span class="irctc-footer-sep"></span>
+          <a href="{% url 'accounts:forgot_password' %}" class="irctc-link">Forgot Password?</a>
+        </div>
+      </div>
+
+      <!-- TAB 2: Email OTP Login & Verification -->
+      <div class="irctc-tab-panel" id="pageGuestFormPanel" role="tabpanel" style="display: none;">
+        
+        <!-- Status Alert Box for Success/Error/Expiry -->
+        <div class="irctc-status-alert" id="pageOtpStatus"></div>
+
+        <!-- Hidden input for CSRF and Next URL -->
+        <input type="hidden" id="pageOtpNext" value="{{ next|default:'/accounts/dashboard/' }}">
+
+        <!-- STEP 1: Enter Email & Request OTP -->
+        <div id="pageEmailSection">
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="pageOtpEmail">Email Address</label>
+            <div class="irctc-input-wrap">
+              <input type="email" id="pageOtpEmail" class="irctc-input" placeholder="Enter Your Email Address (e.g. name@example.com)" required autocomplete="email">
+              <i class="fa-solid fa-envelope irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" class="irctc-btn-pill" id="pageSendOtpBtn" onclick="window.sendAuthOtp('page')">
+              Send OTP
+            </button>
+          </div>
+
+          <div class="irctc-guest-hint">
+            <i class="fa-solid fa-shield-halved" style="color: #046A38;"></i>
+            A 6-digit verification code will be sent to your email. Valid for 2 minutes.
+          </div>
+        </div>
+
+        <!-- STEP 2: Enter & Verify 6-Digit OTP (Shown after OTP is sent) -->
+        <div id="pageOtpInputSection" style="display: none;">
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="pageOtpCode">Enter 6-Digit OTP</label>
+            <div class="irctc-input-wrap">
+              <input type="text" id="pageOtpCode" class="irctc-input irctc-otp-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+              <i class="fa-solid fa-key irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" class="irctc-btn-pill" id="pageVerifyOtpBtn" onclick="window.verifyAuthOtp('page')">
+              Verify &amp; Login
+            </button>
+          </div>
+
+          <!-- 2-Minute Countdown Timer Display -->
+          <div class="irctc-otp-timer" id="pageOtpTimer">
+            <i class="fa-regular fa-clock"></i> OTP valid for: <strong id="pageOtpTimerCount">02:00</strong>
+          </div>
+
+          <!-- Resend OTP Action & Cooldown -->
+          <div class="irctc-otp-resend-wrap">
+            Didn't receive code? 
+            <button type="button" class="irctc-link-btn" id="pageResendOtpBtn" onclick="window.sendAuthOtp('page')" disabled>
+              Resend OTP
+            </button>
+            <span id="pageCooldownText" style="font-size: 0.8rem; color: #94A3B8;"></span>
+          </div>
+
+          <!-- Change Email Option -->
+          <div style="text-align: center; margin-top: 0.6rem;">
+            <a href="javascript:void(0)" onclick="window.resetOtpSection('page')" class="irctc-link" style="color: #64748B; font-size: 0.82rem;">
+              <i class="fa-solid fa-pen-to-square"></i> Change email address
+            </a>
+          </div>
+        </div>
+
+        <!-- Divider Line -->
+        <div class="irctc-divider"></div>
+
+        <!-- Footer Links -->
+        <div class="irctc-card-footer">
+          Prefer password login? <a href="javascript:void(0)" class="irctc-link" onclick="window.switchPageTab('pageLoginFormPanel')">RailAway Login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

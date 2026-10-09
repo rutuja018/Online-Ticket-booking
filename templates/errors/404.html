@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}404 — Page Not Found — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; text-align: center; padding: 6rem 1.5rem 8rem 1.5rem;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--primary); line-height: 1;">404</div>
+  <h2 style="font-size: 1.8rem; margin: 1rem 0 0.5rem 0; color: var(--secondary);">Journey Route Not Found</h2>
+  <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">
+    The station or page you were looking for doesn't exist or has been rescheduled.
+  </p>
+  <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">
+    <i class="fa-solid fa-house"></i> Return to Homepage
+  </a>
+</div>
+{% endblock %}

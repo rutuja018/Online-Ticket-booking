@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Railway Station Retiring Rooms & AC Dormitories — RailAway{% endblock %}
+
+{% block content %}
+<!-- Retiring Room Hero Banner -->
+<section style="background: linear-gradient(135deg, #0A1931 0%, #000080 50%, #1E3A8A 100%); color: #fff; padding: 4rem 1rem 3.5rem 1rem; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: -50px; right: -50px; width: 320px; height: 320px; background: rgba(147, 51, 234, 0.2); border-radius: 50%; filter: blur(50px);"></div>
+  <div style="position: absolute; bottom: -50px; left: -50px; width: 300px; height: 300px; background: rgba(255, 103, 31, 0.15); border-radius: 50%; filter: blur(50px);"></div>
+
+  <div class="container" style="text-align: center; max-width: 860px; margin: 0 auto; position: relative; z-index: 2;">
+    <span class="badge" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.85rem; margin-bottom: 0.75rem; padding: 0.4rem 1rem; border: 1px solid rgba(255,255,255,0.3);">
+      <i class="fa-solid fa-bed"></i> Official Railway Station Lodging & Executive Dormitory Network
+    </span>
+    <h1 style="font-size: 2.6rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem;">
+      Station <span style="color: #FF9933;">Retiring Rooms</span> & Dormitories
+    </h1>
+    <p style="font-size: 1.1rem; opacity: 0.9; line-height: 1.6; margin-bottom: 2rem;">
+      Comfortable station stays for transit passengers. Book AC Deluxe Rooms & Dormitory Beds for 12, 24, or 48 hour slots.
+    </p>
+
+    <!-- Search Station Rooms Card -->
+    <div class="card" style="padding: 1.75rem; background: #fff; color: var(--secondary); text-align: left; box-shadow: 0 20px 45px rgba(0,0,0,0.25); border-top: 5px solid #000080;">
+      <form action="{% url 'retiring_rooms:search' %}" method="GET">
+        <div class="form-row" style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr; gap: 1rem; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="font-weight: 700; color: #000080;">
+              <i class="fa-solid fa-location-dot"></i> Railway Station / City *
+            </label>
+            <input type="text" name="station" class="form-input" placeholder="Type station code or city (e.g. NDLS, CSMT, SBC, Varanasi...)" value="{{ station_query }}" list="retiringStationList" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="font-weight: 700; color: #FF671F;">
+              <i class="fa-solid fa-clock"></i> Duration Slot *
+            </label>
+            <select name="slot_type" class="form-select">
+              <option value="12_HOURS" {% if slot_type == '12_HOURS' %}selected{% endif %}>12 Hours (Half Day)</option>
+              <option value="24_HOURS" {% if slot_type == '24_HOURS' %}selected{% endif %}>24 Hours (Full Day)</option>
+              <option value="48_HOURS" {% if slot_type == '48_HOURS' %}selected{% endif %}>48 Hours (2 Days)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="font-weight: 700; color: #046A38;">
+              <i class="fa-solid fa-door-open"></i> Room Type
+            </label>
+            <select name="room_type" class="form-select">
+              <option value="">All Room Types</option>
+              <option value="AC_DORMITORY" {% if room_type_filter == 'AC_DORMITORY' %}selected{% endif %}>AC Dormitory Bed (Budget)</option>
+              <option value="NON_AC_STANDARD" {% if room_type_filter == 'NON_AC_STANDARD' %}selected{% endif %}>Non-AC Standard Room</option>
+              <option value="AC_DELUXE" {% if room_type_filter == 'AC_DELUXE' %}selected{% endif %}>AC Deluxe Double Room</option>
+              <option value="EXECUTIVE_SUITE" {% if room_type_filter == 'EXECUTIVE_SUITE' %}selected{% endif %}>Executive Station Suite</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px; background: linear-gradient(135deg, #000080 0%, #1E3A8A 100%); font-weight: 700;">
+              <i class="fa-solid fa-magnifying-glass"></i> Find Rooms
+            </button>
+          </div>
+        </div>
+
+        <datalist id="retiringStationList">
+          {% for stn in stations %}
+            <option value="{{ stn.name }} ({{ stn.code }})">{{ stn.city }}, {{ stn.state }}</option>
+            <option value="{{ stn.code }}">{{ stn.name }}</option>
+          {% endfor %}
+        </datalist>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Amenities & Trust Banner -->
+<div class="container" style="margin-top: 3.5rem; margin-bottom: 3.5rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #000080;">
+      <div style="font-size: 2.2rem; color: #000080;"><i class="fa-solid fa-building-user"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">On-Platform Location</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Located inside major stations right above concourses.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #FF671F;">
+      <div style="font-size: 2.2rem; color: #FF671F;"><i class="fa-solid fa-wallet"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Dormitory from ₹250</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Unbeatable rates for transit & solo travelers.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #046A38;">
+      <div style="font-size: 2.2rem; color: #046A38;"><i class="fa-solid fa-wifi"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Free High-Speed WiFi</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Charging points, hot water showers, and locker access.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #9333ea;">
+      <div style="font-size: 2.2rem; color: #9333ea;"><i class="fa-solid fa-qrcode"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Digital Station Pass</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Instant QR entry slip on booking confirmation.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Available Station Rooms Catalog -->
+<div class="container" style="margin-bottom: 5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+    <div>
+      <span class="badge badge-primary" style="margin-bottom: 0.4rem;">
+        <i class="fa-solid fa-bed"></i> STATION LODGING INVENTORY
+      </span>
+      <h2 style="font-size: 1.85rem; color: var(--secondary);">
+        {% if selected_station %}Retiring Rooms at {{ selected_station.name }} ({{ selected_station.code }}){% else %}Station Retiring Rooms Across India{% endif %}
+      </h2>
+    </div>
+  </div>
+
+  {% if rooms %}
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.75rem;">
+    {% for room in rooms %}
+    <div class="card" style="padding: 0; overflow: hidden; border-top: 4px solid {% if room.room_type == 'AC_DORMITORY' %}#046A38{% elif room.room_type == 'EXECUTIVE_SUITE' %}#9333ea{% else %}#000080{% endif %}; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="height: 190px; overflow: hidden; position: relative;">
+        <img src="{{ room.image_url }}" alt="{{ room.get_room_type_display }}" style="width: 100%; height: 100%; object-fit: cover;">
+        <span class="badge" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.75rem;">
+          <i class="fa-solid fa-train"></i> {{ room.station.code }} &bull; {{ room.station.city }}
+        </span>
+        <span class="badge" style="position: absolute; bottom: 10px; right: 10px; background: #000080; color: #fff; font-weight: 700; font-size: 0.75rem;">
+          {{ room.floor }}
+        </span>
+      </div>
+
+      <div style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-bottom: 0.25rem;">
+            {{ room.station.name }}
+          </div>
+          <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.4rem;">
+            {{ room.get_room_type_display }}
+          </h3>
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <strong>Bed/Room No:</strong> {{ room.room_or_bed_no }} &bull; Max Guests: {{ room.capacity }}
+          </div>
+
+          <!-- Amenities snippet -->
+          <div style="background: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+            <i class="fa-solid fa-check" style="color: #046A38;"></i> {{ room.amenities }}
+          </div>
+        </div>
+
+        <!-- Pricing & Book Action -->
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">
+              Rate for <strong>{{ slot_type|slice:":2" }}h slot</strong>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: 900; color: #000080;">
+              {% if slot_type == '12_HOURS' %}₹{{ room.price_12h }}
+              {% elif slot_type == '48_HOURS' %}₹{{ room.price_48h }}
+              {% else %}₹{{ room.price_24h }}{% endif %}
+            </div>
+          </div>
+
+          <a href="{% url 'retiring_rooms:book' room_id=room.id %}?slot_type={{ slot_type }}{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}" class="btn btn-primary" style="background: linear-gradient(135deg, #000080 0%, #1E3A8A 100%);">
+            Book Slot &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <div style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"><i class="fa-solid fa-bed"></i></div>
+    <h3 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 0.5rem;">No retiring rooms found for this search</h3>
+    <a href="{% url 'retiring_rooms:index' %}" class="btn btn-primary">Browse All Stations</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

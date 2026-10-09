@@ -1,0 +1,3 @@
+"""
+Hotels management package.
+"""

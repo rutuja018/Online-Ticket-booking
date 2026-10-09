@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Dashboard — RailAway{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Hello, {{ user.first_name|default:user.username }}! 👋</h1>
+      <p>Welcome to your RailAway traveler dashboard. Manage bookings, hotel stays, and plan trips.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{% url 'bookings:calendar' %}" class="btn btn-outline" style="color: #0284c7; border-color: #7dd3fc;">
+        <i class="fa-regular fa-calendar-days"></i> Travel Calendar
+      </a>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline">
+        <i class="fa-solid fa-user-pen"></i> Edit Profile
+      </a>
+      <a href="{% url 'core:home' %}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> New Booking
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats KPI Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon primary">
+        <i class="fa-solid fa-ticket"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total_bookings }}</span>
+        <span class="stat-label">Total Bookings</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ upcoming_count }}</span>
+        <span class="stat-label">Upcoming Trips & Stays</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon cyan">
+        <i class="fa-solid fa-route"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ completed_count }}</span>
+        <span class="stat-label">Completed Journeys</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon danger">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ cancelled_count }}</span>
+        <span class="stat-label">Cancelled / Refunded</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Booking Shortcuts -->
+  <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--secondary);">Quick Actions</h3>
+  <div class="quick-actions-bar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
+    <a href="{% url 'railways:search' %}" class="action-card">
+      <i class="fa-solid fa-train" style="color: #FF671F;"></i>
+      <span>Book Trains</span>
+    </a>
+    <a href="{% url 'airlines:search' %}" class="action-card">
+      <i class="fa-solid fa-plane-departure" style="color: #1E3A8A;"></i>
+      <span>Book Flights</span>
+    </a>
+    <a href="{% url 'buses:search' %}" class="action-card">
+      <i class="fa-solid fa-bus" style="color: #046A38;"></i>
+      <span>Book Buses</span>
+    </a>
+    <a href="{% url 'hotels:index' %}" class="action-card">
+      <i class="fa-solid fa-hotel" style="color: #9333ea;"></i>
+      <span>Book Hotels</span>
+    </a>
+    <a href="{% url 'food_catering:index' %}" class="action-card">
+      <i class="fa-solid fa-utensils" style="color: #FF671F;"></i>
+      <span>Order Food in Train</span>
+    </a>
+    <a href="{% url 'retiring_rooms:index' %}" class="action-card">
+      <i class="fa-solid fa-bed" style="color: #000080;"></i>
+      <span>Retiring Rooms</span>
+    </a>
+    <a href="{% url 'experiences:hub' %}" class="action-card">
+      <i class="fa-solid fa-star" style="color: #FF9933;"></i>
+      <span>Reviews & Ratings</span>
+    </a>
+    <a href="{% url 'bookings:calendar' %}" class="action-card" style="border-top: 3px solid #0284c7;">
+      <i class="fa-regular fa-calendar-days" style="color: #0284c7;"></i>
+      <span>Travel Calendar</span>
+    </a>
+    <a href="{% url 'bookings:history' %}" class="action-card">
+      <i class="fa-solid fa-clock-rotate-left" style="color: var(--secondary);"></i>
+      <span>All Bookings</span>
+    </a>
+  </div>
+
+  <!-- Upcoming Trips & Stays Section -->
+  {% if upcoming_trips or upcoming_hotels %}
+  <div style="margin-bottom: 3rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.25rem; color: var(--secondary);">
+        <i class="fa-solid fa-calendar-check" style="color: #046A38;"></i> Upcoming Confirmed Trips & Stays
+      </h3>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem;">
+      {% for trip in upcoming_trips %}
+      <div class="card" style="padding: 1.5rem; border-left: 4px solid var(--success);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span class="badge {% if trip.transport_type == 'TRAIN' %}badge-train{% elif trip.transport_type == 'FLIGHT' %}badge-flight{% else %}badge-bus{% endif %}">
+            {{ trip.get_transport_type_display }}
+          </span>
+          <span style="font-family: monospace; font-weight: 700; font-size: 0.9rem; color: var(--primary);">
+            {{ trip.pnr }}
+          </span>
+        </div>
+
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">{{ trip.service_title }}</h4>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          {{ trip.source_location }} &rarr; {{ trip.destination_location }}
+        </div>
+
+        <div style="background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; display: flex; justify-content: space-between; margin-bottom: 1rem;">
+          <span><strong>Date:</strong> {{ trip.journey_date }}</span>
+          <span><strong>Seats:</strong> {{ trip.allocated_seats }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 800; font-size: 1.1rem; color: var(--secondary);">₹{{ trip.total_amount }}</span>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'bookings:ticket' pnr=trip.pnr %}" class="btn btn-sm btn-primary" id="upcomingTicketBtn_{{ trip.pnr }}">
+              <i class="fa-solid fa-ticket"></i> View Ticket
+            </a>
+            {% if trip.is_cancellable %}
+            <a href="{% url 'bookings:cancel' pnr=trip.pnr %}" class="btn btn-sm btn-outline" style="color: var(--danger);" id="upcomingCancelBtn_{{ trip.pnr }}">
+              Cancel
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% for hb in upcoming_hotels %}
+      <div class="card" style="padding: 1.5rem; border-left: 4px solid #9333ea;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span class="badge" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+            <i class="fa-solid fa-hotel"></i> Hotel Stay
+          </span>
+          <span style="font-family: monospace; font-weight: 700; font-size: 0.9rem; color: #7e22ce;">
+            {{ hb.booking_reference }}
+          </span>
+        </div>
+
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">{{ hb.hotel.name }}</h4>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          {{ hb.room.room_type }} &bull; {{ hb.hotel.city }}
+        </div>
+
+        <div style="background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; display: flex; justify-content: space-between; margin-bottom: 1rem;">
+          <span><strong>Check-in:</strong> {{ hb.check_in_date|date:"d M Y" }}</span>
+          <span><strong>Nights:</strong> {{ hb.nights }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 800; font-size: 1.1rem; color: var(--secondary);">₹{{ hb.total_amount }}</span>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'hotels:confirmation' booking_ref=hb.booking_reference %}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);" id="upcomingHotelVoucherBtn_{{ hb.booking_reference }}">
+              <i class="fa-solid fa-file-invoice"></i> Voucher
+            </a>
+            {% if hb.is_cancellable %}
+            <a href="{% url 'hotels:cancel' booking_ref=hb.booking_reference %}" class="btn btn-sm btn-outline" style="color: var(--danger);" id="upcomingHotelCancelBtn_{{ hb.booking_reference }}">
+              Cancel
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Bookings Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="card-header" style="padding: 1.25rem 1.5rem; margin-bottom: 0;">
+      <h3 class="card-title">Recent Reservations</h3>
+      <a href="{% url 'bookings:history' %}" style="font-size: 0.9rem; font-weight: 700;" id="dashboardViewAllBtn">View All &rarr;</a>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>PNR / Ref</th>
+            <th>Type</th>
+            <th>Service / Hotel</th>
+            <th>Journey / Stay Date</th>
+            <th>Seats / Rooms</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent_bookings or recent_hotels %}
+            {% for b in recent_bookings %}
+            <tr>
+              <td>
+                <strong style="font-family: monospace; color: var(--primary);">{{ b.pnr }}</strong>
+              </td>
+              <td>
+                <span class="badge {% if b.transport_type == 'TRAIN' %}badge-train{% elif b.transport_type == 'FLIGHT' %}badge-flight{% else %}badge-bus{% endif %}">
+                  {{ b.get_transport_type_display }}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight: 600;">{{ b.service_title }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ b.source_location }} &rarr; {{ b.destination_location }}</div>
+              </td>
+              <td>{{ b.journey_date }}</td>
+              <td>{{ b.allocated_seats }}</td>
+              <td><strong>₹{{ b.total_amount }}</strong></td>
+              <td>
+                {% if b.booking_status == 'CONFIRMED' %}
+                  <span class="badge badge-success">Confirmed</span>
+                {% elif b.booking_status == 'CANCELLED' or b.booking_status == 'REFUNDED' %}
+                  <span class="badge badge-danger">Cancelled</span>
+                {% elif b.booking_status == 'PENDING' %}
+                  <span class="badge badge-warning">Pending</span>
+                {% else %}
+                  <span class="badge badge-warning">{{ b.booking_status }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  {% if b.booking_status == 'CONFIRMED' %}
+                    <a href="{% url 'bookings:ticket' pnr=b.pnr %}" class="btn btn-sm btn-outline-primary" title="View Ticket" id="dashTicketBtn_{{ b.pnr }}">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    {% if b.is_cancellable %}
+                    <a href="{% url 'bookings:cancel' pnr=b.pnr %}" class="btn btn-sm btn-outline" style="color: var(--danger);" title="Cancel Booking" id="dashCancelBtn_{{ b.pnr }}">
+                      <i class="fa-solid fa-xmark"></i>
+                    </a>
+                    {% endif %}
+                  {% elif b.booking_status == 'PENDING' %}
+                    <a href="{% url 'payments:process_payment' booking_id=b.id %}" class="btn btn-sm btn-success" title="Pay Now" id="dashPayNowBtn_{{ b.pnr }}">
+                      <i class="fa-solid fa-credit-card"></i> Pay
+                    </a>
+                    <a href="{% url 'bookings:ticket' pnr=b.pnr %}" class="btn btn-sm btn-outline" title="Details" id="dashDetailsBtn_{{ b.pnr }}">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                  {% else %}
+                    <a href="{% url 'bookings:ticket' pnr=b.pnr %}" class="btn btn-sm btn-outline" title="View Slip" id="dashSlipBtn_{{ b.pnr }}">
+                      <i class="fa-solid fa-receipt"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+
+            {% for hb in recent_hotels %}
+            <tr>
+              <td>
+                <strong style="font-family: monospace; color: #7e22ce;">{{ hb.booking_reference }}</strong>
+              </td>
+              <td>
+                <span class="badge" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+                  <i class="fa-solid fa-hotel"></i> Hotel
+                </span>
+              </td>
+              <td>
+                <div style="font-weight: 600;">{{ hb.hotel.name }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ hb.room.room_type }} &bull; {{ hb.hotel.city }}</div>
+              </td>
+              <td>{{ hb.check_in_date|date:"d M Y" }}</td>
+              <td>{{ hb.room_count }} Room &bull; {{ hb.guest_count }} Pax</td>
+              <td><strong>₹{{ hb.total_amount }}</strong></td>
+              <td>
+                {% if hb.booking_status == 'CONFIRMED' %}
+                  <span class="badge badge-success">Confirmed</span>
+                {% elif hb.booking_status == 'CANCELLED' or hb.booking_status == 'REFUNDED' %}
+                  <span class="badge badge-danger">Cancelled</span>
+                {% elif hb.booking_status == 'PENDING' %}
+                  <span class="badge badge-warning">Pending</span>
+                {% else %}
+                  <span class="badge badge-warning">{{ hb.booking_status }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  <a href="{% url 'hotels:confirmation' booking_ref=hb.booking_reference %}" class="btn btn-sm btn-outline-primary" style="color: #7e22ce; border-color: #d8b4fe;" title="View Voucher" id="dashHotelVoucherBtn_{{ hb.booking_reference }}">
+                    <i class="fa-solid fa-file-invoice"></i>
+                  </a>
+                  {% if hb.booking_status == 'PENDING' %}
+                    <a href="{% url 'hotels:process_payment' booking_id=hb.id %}" class="btn btn-sm btn-success" title="Pay Now">
+                      <i class="fa-solid fa-credit-card"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fa-solid fa-ticket-simple" style="font-size: 2.5rem; margin-bottom: 0.75rem; color: var(--text-light);"></i>
+                <p>You haven't made any bookings yet.</p>
+                <a href="{% url 'core:home' %}" class="btn btn-sm btn-primary" style="margin-top: 0.75rem;">Start Booking Now</a>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

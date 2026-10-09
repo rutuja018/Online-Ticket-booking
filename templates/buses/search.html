@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Bus Ticket — RailAway Bus Service{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<!-- Bus Portal Hero Banner -->
+<section class="irctc-bus-hero">
+  <div class="container irctc-bus-hero-inner">
+    <div class="irctc-bus-shortcuts">
+      <div class="irctc-shortcut-item active" title="Book Bus Ticket">
+        <div class="irctc-shortcut-icon">
+          <i class="fa-solid fa-bus-simple"></i>
+        </div>
+        <span>Book Bus</span>
+      </div>
+      <div class="irctc-shortcut-item" title="Pilgrimage Specials">
+        <div class="irctc-shortcut-icon">
+          <i class="fa-solid fa-place-of-worship"></i>
+        </div>
+        <span>Pilgrim Tours</span>
+      </div>
+      <div class="irctc-shortcut-item" title="Tourist Packages">
+        <div class="irctc-shortcut-icon">
+          <i class="fa-solid fa-person-hiking"></i>
+        </div>
+        <span>Tourist Special</span>
+      </div>
+      <div class="irctc-shortcut-item" title="Live Bus GPS Tracking">
+        <div class="irctc-shortcut-icon">
+          <i class="fa-solid fa-route"></i>
+        </div>
+        <span>Live Status</span>
+      </div>
+    </div>
+
+    <div class="irctc-bus-heading">
+      <i class="fa-solid fa-bus"></i>
+      <h2>Book Bus Ticket</h2>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="padding: 0 1.5rem 5rem 1.5rem; margin-top: -2.5rem; position: relative; z-index: 10;">
+  <!-- Search Filter Card -->
+  <div class="card" style="padding: 1.75rem; margin-bottom: 1.5rem; background: #ffffff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
+    <form method="GET" action="{% url 'buses:search' %}">
+      <div class="form-row" style="display: grid; grid-template-columns: 2.2fr auto 2.2fr 1.4fr 1.4fr 1.2fr; gap: 0.75rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 700; color: #1e293b;"><i class="fa-solid fa-location-dot" style="color: #FF671F;"></i> Depart From</label>
+          <input type="text" name="from_city" id="busSearchFrom" class="form-input" 
+                 value="{% if selected_from %}{{ selected_from }}{% else %}{{ raw_from }}{% endif %}" 
+                 placeholder="Departure City (e.g. Pune, Delhi, Mumbai...)" 
+                 list="busCitiesList" autocomplete="off" style="height: 48px; border-radius: 8px;">
+        </div>
+
+        <div class="swap-separator" style="margin-bottom: 2px;">
+          <button type="button" class="btn-swap" onclick="swapValues('busSearchFrom', 'busSearchTo')" title="Swap Origin & Destination">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 700; color: #1e293b;"><i class="fa-solid fa-location-crosshairs" style="color: #046A38;"></i> Going To</label>
+          <input type="text" name="to_city" id="busSearchTo" class="form-input" 
+                 value="{% if selected_to %}{{ selected_to }}{% else %}{{ raw_to }}{% endif %}" 
+                 placeholder="Arrival City (e.g. Goa, Manali, Shimla...)" 
+                 list="busCitiesList" autocomplete="off" style="height: 48px; border-radius: 8px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 700; color: #1e293b;"><i class="fa-solid fa-calendar-day" style="color: #000080;"></i> Date of Journey</label>
+          <input type="date" name="travel_date" class="form-input" value="{{ selected_date }}" style="height: 48px; border-radius: 8px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-weight: 700; color: #1e293b;"><i class="fa-solid fa-van-shuttle" style="color: #ea580c;"></i> Bus Category</label>
+          <select name="bus_type" class="form-select" style="height: 48px; border-radius: 8px;">
+            <option value="">All Bus Types</option>
+            {% for val, label in bus_types %}
+              <option value="{{ val }}" {% if selected_bus_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <button type="submit" class="irctc-btn-pill" style="width: 100%; height: 48px; font-size: 0.98rem; padding: 0 1rem;">
+            <i class="fa-solid fa-magnifying-glass"></i> Search Buses
+          </button>
+        </div>
+      </div>
+
+      <datalist id="busCitiesList">
+        {% for c in source_cities %}
+          <option value="{{ c }}"></option>
+        {% endfor %}
+        {% for c in dest_cities %}
+          <option value="{{ c }}"></option>
+        {% endfor %}
+      </datalist>
+    </form>
+  </div>
+
+  <!-- 7-Day Low-Fare Strip Carousel -->
+  {% if fare_strip %}
+  <div class="fare-strip-container">
+    <div class="fare-strip-header">
+      <div class="fare-strip-title">
+        <i class="fa-solid fa-bus" style="color: #ea580c;"></i>
+        <span>7-Day Lowest Bus Fares</span>
+        <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">&bull; {{ selected_bus_type|default:'All Categories' }}</span>
+      </div>
+      <button type="button" class="fare-strip-open-cal" id="openBusFareModalBtn">
+        <i class="fa-regular fa-calendar-days"></i> View 30-Day Fare Calendar &rarr;
+      </button>
+    </div>
+
+    <div class="fare-strip-items">
+      {% for item in fare_strip %}
+      <a href="?from_city={{ raw_from }}&to_city={{ raw_to }}&travel_date={{ item.date_str }}&bus_type={{ selected_bus_type }}" 
+         class="fare-strip-card {% if item.is_selected %}active-date{% endif %} {% if item.is_cheapest %}is-cheapest{% endif %} {% if not item.has_schedules %}no-fare{% endif %}"
+         title="View buses for {{ item.date_formatted }}">
+        {% if item.is_cheapest %}
+        <span class="cheapest-badge" style="background: #ea580c;"><i class="fa-solid fa-crown"></i> Cheapest</span>
+        {% endif %}
+        <span class="fare-strip-day">{{ item.day_name }}</span>
+        <span class="fare-strip-date">{{ item.date_formatted }}</span>
+        {% if item.min_fare %}
+        <span class="fare-strip-price" style="color: #ea580c;">From ₹{{ item.min_fare|floatformat:0 }}</span>
+        {% else %}
+        <span class="fare-strip-price">Check</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Search Header -->
+  <div class="results-header">
+    <div>
+      <h2 style="font-size: 1.6rem; color: var(--secondary);">
+        Available Luxury Buses
+        {% if selected_from and selected_to %}
+          for <span style="color: #ea580c;">{{ selected_from }} &rarr; {{ selected_to }}</span>
+        {% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Showing {{ results|length }} bus operators on {{ selected_date }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Bus List -->
+  {% if results %}
+    {% for item in results %}
+      {% with sched=item.schedule %}
+      <div class="schedule-card" style="border-left: 4px solid #ea580c;">
+        <!-- Bus Meta -->
+        <div class="service-meta">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="badge" style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;">
+              ★ {{ sched.bus.operator.rating }}
+            </span>
+            <span class="service-code" style="color: #ea580c;">{{ sched.bus.bus_number }}</span>
+          </div>
+          <h3 class="service-title">{{ sched.bus.operator.name }}</h3>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">{{ sched.bus.get_bus_type_display }}</span>
+          
+          <!-- Amenities Chips -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem;">
+            {% for amenity in item.amenities_list|slice:":3" %}
+              <span style="font-size: 0.75rem; background: var(--bg-subtle); padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); color: var(--secondary-muted);">
+                <i class="fa-solid fa-check" style="color: var(--success); font-size: 0.65rem;"></i> {{ amenity }}
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Journey Timeline -->
+        <div class="journey-timeline">
+          <div class="time-box" style="text-align: left;">
+            <div class="time">{{ sched.departure_time|time:"H:i" }}</div>
+            <div class="location">{{ sched.route.source_city }}</div>
+          </div>
+
+          <div class="timeline-track">
+            <span class="duration-tag"><i class="fa-regular fa-clock"></i> {{ sched.formatted_duration }}</span>
+            <div class="track-line" style="background: #fed7aa;"></div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">{{ sched.route.distance_km }} km</span>
+          </div>
+
+          <div class="time-box" style="text-align: right;">
+            <div class="time">{{ sched.arrival_time|time:"H:i" }}</div>
+            <div class="location">{{ sched.route.destination_city }}</div>
+          </div>
+        </div>
+
+        <!-- Fare and Action -->
+        <div class="fare-action-box">
+          <div class="fare-price">
+            ₹{{ item.fare }} <span>/ seat</span>
+          </div>
+          <div class="seat-status-tag" style="color: #ea580c;">
+            <i class="fa-solid fa-couch"></i> {{ item.available_seats }} Seats Available
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <a href="{% url 'buses:detail' schedule_id=sched.id %}" class="btn btn-sm btn-outline">
+              Boarding Info
+            </a>
+            <a href="{% url 'buses:seat_select' schedule_id=sched.id %}" class="btn btn-sm btn-primary" style="background: #ea580c; border-color: #ea580c;">
+              Select Deck &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+    {% endfor %}
+  {% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+      <i class="fa-solid fa-bus-simple" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+      <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">No bus routes found for this search</h3>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Try searching popular routes like Delhi to Jaipur, Mumbai to Goa, or Bengaluru to Hyderabad.</p>
+      <a href="{% url 'buses:search' %}" class="btn btn-primary">View All Bus Routes</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- 30-Day Bus Fare Calendar Modal -->
+<div class="cal-modal-backdrop" id="busFareModal">
+  <div class="cal-modal-card" style="max-width: 620px;">
+    <div class="cal-modal-header">
+      <h3>
+        <i class="fa-solid fa-bus" style="color: #ea580c;"></i>
+        <span>30-Day Low Fare Bus Calendar</span>
+      </h3>
+      <button type="button" class="cal-modal-close" id="closeBusFareModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    
+    <div class="cal-modal-body" style="padding: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <button type="button" class="cal-nav-btn" id="busFareCalPrevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="busFareCalMonthTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--secondary);">October 2026</span>
+        <button type="button" class="cal-nav-btn" id="busFareCalNextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="fare-modal-grid">
+        <div class="fare-modal-day-head">Mon</div>
+        <div class="fare-modal-day-head">Tue</div>
+        <div class="fare-modal-day-head">Wed</div>
+        <div class="fare-modal-day-head">Thu</div>
+        <div class="fare-modal-day-head">Fri</div>
+        <div class="fare-modal-day-head" style="color: #ef4444;">Sat</div>
+        <div class="fare-modal-day-head" style="color: #ef4444;">Sun</div>
+      </div>
+
+      <div class="fare-modal-grid" id="busFareModalDaysGrid" style="margin-top: 6px;">
+        <!-- Populated via AJAX -->
+      </div>
+      
+      <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 12px; height: 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 3px;"></span>
+          <span>Lowest Fare of the Month</span>
+        </div>
+        <div>
+          <i class="fa-solid fa-info-circle"></i> Click any date to load search results
+        </div>
+      </div>
+    </div>
+    
+    <div class="cal-modal-footer">
+      <button type="button" class="btn btn-outline" id="busFareModalCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function swapValues(id1, id2) {
+    const el1 = document.getElementById(id1);
+    const el2 = document.getElementById(id2);
+    if (el1 && el2) {
+      const temp = el1.value;
+      el1.value = el2.value;
+      el2.value = temp;
+      el1.style.transition = 'transform 0.15s ease';
+      el2.style.transition = 'transform 0.15s ease';
+      el1.style.transform = 'scale(1.02)';
+      el2.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        el1.style.transform = 'scale(1)';
+        el2.style.transform = 'scale(1)';
+      }, 150);
+    }
+  }
+
+  // Bus Fare Calendar Modal Logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const busFareModal = document.getElementById('busFareModal');
+    const openBtn = document.getElementById('openBusFareModalBtn');
+    const closeBtn = document.getElementById('closeBusFareModalBtn');
+    const footerCloseBtn = document.getElementById('busFareModalCloseBtn');
+    const monthTitle = document.getElementById('busFareCalMonthTitle');
+    const daysGrid = document.getElementById('busFareModalDaysGrid');
+    const prevBtn = document.getElementById('busFareCalPrevBtn');
+    const nextBtn = document.getElementById('busFareCalNextBtn');
+
+    const rawFrom = "{{ raw_from }}";
+    const rawTo = "{{ raw_to }}";
+    const busType = "{{ selected_bus_type }}";
+    const selectedDateStr = "{{ selected_date }}";
+
+    const initialDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
+    let calYear = initialDate.getFullYear();
+    let calMonth = initialDate.getMonth() + 1; // 1-indexed
+
+    function openModal() {
+      if (busFareModal) {
+        busFareModal.classList.add('active');
+        loadBusFareCalendar(calYear, calMonth);
+      }
+    }
+
+    function closeModal() {
+      if (busFareModal) busFareModal.classList.remove('active');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeModal);
+    if (busFareModal) {
+      busFareModal.addEventListener('click', (e) => {
+        if (e.target === busFareModal) closeModal();
+      });
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        calMonth--;
+        if (calMonth < 1) {
+          calMonth = 12;
+          calYear--;
+        }
+        loadBusFareCalendar(calYear, calMonth);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        calMonth++;
+        if (calMonth > 12) {
+          calMonth = 1;
+          calYear++;
+        }
+        loadBusFareCalendar(calYear, calMonth);
+      });
+    }
+
+    function loadBusFareCalendar(year, month) {
+      if (!daysGrid) return;
+      daysGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--text-muted);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; color: #ea580c;"></i>
+          <p style="margin-top: 0.5rem; font-size: 0.85rem;">Fetching live bus fares for ${year}-${month}...</p>
+        </div>
+      `;
+
+      const apiUrl = `/buses/api/fare-calendar/?from_city=${encodeURIComponent(rawFrom)}&to_city=${encodeURIComponent(rawTo)}&bus_type=${encodeURIComponent(busType)}&year=${year}&month=${month}`;
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            monthTitle.textContent = `${data.month_name} ${data.year}`;
+            renderDays(data);
+          } else {
+            daysGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--danger); padding: 1rem;">Could not load bus fare data.</div>`;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          daysGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--danger); padding: 1rem;">Network error fetching bus fares.</div>`;
+        });
+    }
+
+    function renderDays(data) {
+      daysGrid.innerHTML = '';
+      const firstDayIdx = new Date(data.year, data.month - 1, 1).getDay();
+      const startOffset = (firstDayIdx + 6) % 7; // Monday start
+
+      for (let i = 0; i < startOffset; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'fare-modal-cell disabled';
+        daysGrid.appendChild(emptyCell);
+      }
+
+      data.days.forEach(d => {
+        const cell = document.createElement('div');
+        cell.className = 'fare-modal-cell';
+        if (d.is_past) cell.classList.add('disabled');
+        if (d.date_str === selectedDateStr) cell.classList.add('selected-day');
+        if (d.is_cheapest) {
+          cell.classList.add('cheapest-day');
+          cell.style.background = '#fff7ed';
+          cell.style.borderColor = '#fed7aa';
+        }
+
+        let priceHtml = '<span class="fare-modal-price" style="color: var(--text-light); font-size: 0.65rem;">--</span>';
+        if (d.min_fare) {
+          priceHtml = `<span class="fare-modal-price" style="color: #ea580c; font-weight: 700;">₹${Math.round(d.min_fare)}</span>`;
+        }
+
+        cell.innerHTML = `
+          <span class="fare-modal-date-num">${d.day_num}</span>
+          ${priceHtml}
+        `;
+
+        if (!d.is_past) {
+          cell.addEventListener('click', () => {
+            window.location.href = `?from_city=${encodeURIComponent(rawFrom)}&to_city=${encodeURIComponent(rawTo)}&travel_date=${d.date_str}&bus_type=${encodeURIComponent(busType)}`;
+          });
+        }
+
+        daysGrid.appendChild(cell);
+      });
+    }
+  });
+</script>
+{% endblock %}

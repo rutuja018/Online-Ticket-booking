@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ schedule.bus.operator.name }} — {{ schedule.route }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 3rem 1.5rem 5rem 1.5rem;">
+  <a href="{% url 'buses:search' %}" class="btn btn-sm btn-outline mb-3" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Bus Search
+  </a>
+
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+      <div>
+        <span class="badge badge-bus"><i class="fa-solid fa-bus"></i> {{ schedule.bus.get_bus_type_display }}</span>
+        <h1 style="font-size: 1.8rem; margin: 0.4rem 0;">{{ schedule.bus.operator.name }}</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Bus Reg: {{ schedule.bus.bus_number }} &bull; Total Seats: {{ schedule.bus.total_seats }}
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge" style="background: #fff7ed; color: #c2410c; font-size: 1rem; font-weight: 800;">
+          ★ {{ schedule.bus.operator.rating }} Rating
+        </span>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">
+          Date: {{ schedule.journey_date }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div class="journey-timeline">
+        <div class="time-box" style="text-align: left;">
+          <div class="time">{{ schedule.departure_time|time:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.route.source_city }}</div>
+        </div>
+
+        <div class="timeline-track">
+          <span class="duration-tag"><i class="fa-regular fa-clock"></i> {{ schedule.formatted_duration }}</span>
+          <div class="track-line" style="background: #fed7aa;"></div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">{{ schedule.route.distance_km }} km</span>
+        </div>
+
+        <div class="time-box" style="text-align: right;">
+          <div class="time">{{ schedule.arrival_time|time:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.route.destination_city }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boarding & Dropping Points -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+      <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1.25rem; border-radius: var(--radius-md);">
+        <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.75rem;">
+          <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> Boarding Locations
+        </h4>
+        <ul style="list-style: square; padding-left: 1.25rem; font-size: 0.875rem; color: var(--secondary-muted); line-height: 1.6;">
+          {% for point in boarding_points %}
+            <li>{{ point }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1.25rem; border-radius: var(--radius-md);">
+        <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.75rem;">
+          <i class="fa-solid fa-flag-checkered" style="color: #ea580c;"></i> Dropping Locations
+        </h4>
+        <ul style="list-style: square; padding-left: 1.25rem; font-size: 0.875rem; color: var(--secondary-muted); line-height: 1.6;">
+          {% for point in dropping_points %}
+            <li>{{ point }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Amenities Grid -->
+    <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Included Luxury Amenities</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 2.5rem;">
+      {% for am in amenities %}
+        <div style="background: var(--bg-subtle); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+          <span>{{ am }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Ticket Price</span>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--secondary);">₹{{ schedule.base_fare }}</div>
+      </div>
+      <a href="{% url 'buses:seat_select' schedule_id=schedule.id %}" class="btn btn-primary btn-lg" style="background: #ea580c; border-color: #ea580c;">
+        Select Sleeper & Seater Deck &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

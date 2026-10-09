@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms & Conditions — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 4rem 1.5rem 6rem 1.5rem;">
+  <div class="card" style="padding: 3rem;">
+    <span class="badge badge-primary" style="margin-bottom: 0.5rem;">POLICIES & GUIDELINES</span>
+    <h1 style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1.5rem;">Terms & Conditions</h1>
+
+    <div style="font-size: 0.95rem; line-height: 1.7; color: var(--secondary-muted);">
+      <h3 style="color: var(--secondary); margin: 1.5rem 0 0.5rem 0;">1. Booking Verification</h3>
+      <p>Passengers must carry an original government-issued photo ID (Aadhaar, Passport, Driving License, Voter ID, PAN Card) matching the passenger details entered at booking.</p>
+
+      <h3 style="color: var(--secondary); margin: 1.5rem 0 0.5rem 0;">2. Cancellation & Refund Rules</h3>
+      <p>Ticket and booking cancellations are governed by official service-specific rules across Trains, Flights, Buses, Hotels, Retiring Rooms, and Food in Train orders.</p>
+      <div style="margin: 1rem 0; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 1.25rem;">
+        <h4 style="color: #166534; margin-bottom: 0.35rem; font-size: 1.05rem;">
+          <i class="fa-solid fa-shield-halved"></i> Dedicated Cancellation & Refund Policy Hub
+        </h4>
+        <p style="font-size: 0.9rem; color: #166534; margin-bottom: 0.75rem;">
+          Explore complete refund slabs, calculation matrices, interactive refund estimator, and step-by-step guides for all 6 services.
+        </p>
+        <a href="{% url 'core:cancellation_policy' %}" class="btn btn-sm btn-primary" style="background: #16a34a;">
+          View Full Cancellation & Refund Policy &rarr;
+        </a>
+      </div>
+
+      <h3 style="color: var(--secondary); margin: 1.5rem 0 0.5rem 0;">3. Fare and Tax Breakdown</h3>
+      <p>All prices displayed include base fare, statutory GST/taxes, and convenience fees as prescribed by transport authorities.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

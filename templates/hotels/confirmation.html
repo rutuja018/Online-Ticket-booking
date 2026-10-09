@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hotel Booking Confirmation — Ref: {{ booking.booking_reference }} — RailAway{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ticket.css' %}">
+<style>
+  .hotel-voucher-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .voucher-top-bar {
+    background: linear-gradient(135deg, #0A1128 0%, #000080 50%, #046A38 100%);
+    color: #fff;
+    padding: 1.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+  }
+  .voucher-top-bar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--tricolor-ribbon);
+  }
+  .voucher-body {
+    padding: 2.5rem;
+  }
+  .voucher-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    background: var(--bg-subtle);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+  }
+  .voucher-item-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.35rem;
+  }
+  .voucher-item-val {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--secondary);
+  }
+  @media print {
+    .no-print, .site-navbar, .site-footer, .alert-container {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+    }
+    .hotel-voucher-card {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+    }
+    .voucher-top-bar {
+      background: #0F172A !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 980px; padding: 2.5rem 1.5rem 5rem 1.5rem;">
+
+  <!-- Action Bar (Hidden when Printing) -->
+  <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{% url 'bookings:history' %}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> My Bookings
+      </a>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </a>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      {% if booking.booking_status == 'CONFIRMED' and can_cancel %}
+        <a href="{% url 'hotels:cancel' booking_ref=booking.booking_reference %}" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: #fca5a5;" title="Cancel this hotel reservation">
+          <i class="fa-solid fa-ban"></i> Cancel Booking
+        </a>
+      {% elif booking.booking_status == 'PENDING' %}
+        <a href="{% url 'hotels:process_payment' booking_id=booking.id %}" class="btn btn-sm btn-success" style="font-weight: 700;">
+          <i class="fa-solid fa-credit-card"></i> Complete Payment (₹{{ booking.total_amount }})
+        </a>
+      {% endif %}
+
+      <button type="button" class="btn btn-sm btn-primary" onclick="window.print();" id="printVoucherBtn">
+        <i class="fa-solid fa-print"></i> Print Hotel E-Voucher
+      </button>
+
+      <a href="{% url 'hotels:index' %}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-plus"></i> Book Another Stay
+      </a>
+    </div>
+  </div>
+
+  <!-- Official Hotel E-Voucher Pass -->
+  <div class="hotel-voucher-card" id="printableVoucherArea">
+    <!-- Top Bar -->
+    <div class="voucher-top-bar">
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff;">
+          <i class="fa-solid fa-hotel"></i>
+        </div>
+        <div>
+          <h2 style="color: #fff; font-size: 1.4rem; margin: 0; line-height: 1.1;">RailAway Hotel E-Voucher</h2>
+          <span style="font-size: 0.8rem; color: #cbd5e1; letter-spacing: 0.5px;">OFFICIAL ACCOMMODATION CONFIRMATION PASS</span>
+        </div>
+      </div>
+
+      <div style="text-align: right;">
+        <div style="font-size: 0.75rem; color: #cbd5e1; letter-spacing: 0.5px;">BOOKING REFERENCE</div>
+        <div style="font-family: monospace; font-size: 1.4rem; font-weight: 800; color: #FFA86B; letter-spacing: 1px;">
+          {{ booking.booking_reference }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Voucher Body -->
+    <div class="voucher-body">
+      <!-- Status & Hotel Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem;">
+            <span style="color: #F59E0B; font-size: 0.95rem;">
+              {% for _ in booking.hotel.star_range %}★{% endfor %}
+            </span>
+            <span class="badge badge-primary">{{ booking.hotel.get_hotel_type_display }}</span>
+          </div>
+          <h2 style="font-size: 1.6rem; color: var(--secondary); margin-bottom: 0.3rem;">{{ booking.hotel.name }}</h2>
+          <div style="font-size: 0.9rem; color: var(--text-muted);">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> {{ booking.hotel.address }}
+            {% if booking.hotel.landmark %}&bull; {{ booking.hotel.landmark }}{% endif %}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          {% if booking.booking_status == 'CONFIRMED' %}
+            <span class="badge badge-success" style="font-size: 0.95rem; padding: 0.45rem 1rem;">
+              <i class="fa-solid fa-circle-check"></i> Booking Confirmed & Guaranteed
+            </span>
+          {% elif booking.booking_status == 'CANCELLED' or booking.booking_status == 'REFUNDED' %}
+            <span class="badge badge-danger" style="font-size: 0.95rem; padding: 0.45rem 1rem;">
+              <i class="fa-solid fa-circle-xmark"></i> Reservation Cancelled (Refund: ₹{{ booking.refund_amount }})
+            </span>
+          {% elif booking.booking_status == 'PENDING' %}
+            <span class="badge badge-warning" style="font-size: 0.95rem; padding: 0.45rem 1rem;">
+              <i class="fa-solid fa-clock"></i> Pending Payment
+            </span>
+          {% else %}
+            <span class="badge badge-neutral">{{ booking.booking_status }}</span>
+          {% endif %}
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem;">
+            Reserved on {{ booking.created_at|date:"d M Y, H:i" }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stay Specifications Grid -->
+      <div class="voucher-grid">
+        <div>
+          <div class="voucher-item-label">Check-in Date & Time</div>
+          <div class="voucher-item-val" style="color: var(--primary);">{{ booking.check_in_date|date:"D, d M Y" }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">From {{ booking.hotel.check_in_time|time:"H:i" }} hrs</div>
+        </div>
+
+        <div>
+          <div class="voucher-item-label">Check-out Date & Time</div>
+          <div class="voucher-item-val" style="color: #046A38;">{{ booking.check_out_date|date:"D, d M Y" }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Until {{ booking.hotel.check_out_time|time:"H:i" }} hrs</div>
+        </div>
+
+        <div>
+          <div class="voucher-item-label">Stay Duration</div>
+          <div class="voucher-item-val">{{ booking.nights }} Night{% if booking.nights > 1 %}s{% endif %}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">{{ booking.room_count }} Room &bull; {{ booking.guest_count }} Guests</div>
+        </div>
+
+        <div>
+          <div class="voucher-item-label">Room Category</div>
+          <div class="voucher-item-val">{{ booking.room.room_type }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">{{ booking.room.bed_type }}</div>
+        </div>
+      </div>
+
+      <!-- Guest Details & Contact -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div>
+          <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-user" style="color: var(--primary);"></i> Primary Guest & Contact
+          </h4>
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; font-size: 0.88rem; line-height: 1.6;">
+            <div><strong>Name:</strong> {{ booking.primary_guest_name }}</div>
+            <div><strong>Email:</strong> {{ booking.email }}</div>
+            <div><strong>Mobile:</strong> {{ booking.phone }}</div>
+            {% if booking.special_requests %}
+              <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); font-size: 0.82rem; color: var(--text-muted);">
+                <strong>Special Requests:</strong> {{ booking.special_requests }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Additional Guests if present -->
+        <div>
+          <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-users" style="color: #046A38;"></i> Registered Guests ({{ booking.guest_count }})
+          </h4>
+          <div style="background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; font-size: 0.88rem;">
+            {% for g in booking.guests.all %}
+              <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--border);{% endif %}">
+                <span>{{ forloop.counter }}. {{ g.full_name }}</span>
+                <span style="color: var(--text-muted); font-size: 0.8rem;">
+                  {% if g.is_primary %}<span class="badge badge-primary" style="font-size: 0.65rem;">Primary</span>{% endif %}
+                  {% if g.age %}{{ g.age }} yrs &bull; {{ g.gender }}{% endif %}
+                </span>
+              </div>
+            {% empty %}
+              <div>{{ booking.primary_guest_name }} (Primary Guest)</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment & Fare Breakdown Table -->
+      <div style="margin-bottom: 2rem;">
+        <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+          <i class="fa-solid fa-receipt" style="color: #000080;"></i> Payment Receipt & Tariff Summary
+        </h4>
+        <div style="border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;">
+          <table class="custom-table" style="margin: 0;">
+            <tbody>
+              <tr>
+                <td>Base Room Tariff ({{ booking.nights }} Night{% if booking.nights > 1 %}s{% endif %} &times; {{ booking.room_count }} Room &times; ₹{{ booking.base_price_per_night }})</td>
+                <td style="text-align: right; font-weight: 700;">₹{{ booking.base_fare }}</td>
+              </tr>
+              <tr>
+                <td>Hotel GST & Taxes (12%)</td>
+                <td style="text-align: right;">₹{{ booking.taxes }}</td>
+              </tr>
+              <tr>
+                <td>Platform Convenience Fee</td>
+                <td style="text-align: right;">₹{{ booking.service_fee }}</td>
+              </tr>
+              {% if booking.discount > 0 %}
+                <tr style="color: #046A38; font-weight: 700;">
+                  <td>Promo Coupon Discount ({{ booking.promo_code }})</td>
+                  <td style="text-align: right;">-₹{{ booking.discount }}</td>
+                </tr>
+              {% endif %}
+              <tr style="background: var(--bg-subtle); font-size: 1.1rem; font-weight: 800;">
+                <td>Total Amount Paid</td>
+                <td style="text-align: right; color: var(--secondary);">₹{{ booking.total_amount }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer Policies & QR Code -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1.5rem; border-top: 1px dashed var(--border); flex-wrap: wrap; gap: 1.5rem;">
+        <div style="max-width: 600px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+          <strong style="color: var(--secondary);">Important Check-in Guidelines:</strong><br>
+          1. Original Government Photo ID (Aadhaar, Passport, Driving License) is mandatory for each adult guest at check-in.<br>
+          2. Early check-in or late check-out is subject to room availability and hotel discretion.<br>
+          3. For 24/7 assistance regarding this booking, reach RailAway Support at <strong>1800-RAILAWAY</strong> or <strong>support@railaway.com</strong>.
+        </div>
+
+        <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; background: #000; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem;">
+            <i class="fa-solid fa-qrcode"></i>
+          </div>
+          <span style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted); margin-top: 0.25rem; display: block;">
+            {{ booking.booking_reference }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Flight Search Results — RailAway{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+  <!-- Search Filter Card -->
+  <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem; background: #ffffff;">
+    <form method="GET" action="{% url 'airlines:search' %}">
+      <div class="form-row" style="display: grid; grid-template-columns: 2.2fr auto 2.2fr 1.4fr 1.4fr 1.2fr; gap: 0.75rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-plane-departure" style="color: #FF671F;"></i> Origin Airport</label>
+          <input type="text" name="from_airport" id="flightSearchFrom" class="form-input" 
+                 value="{% if selected_origin %}{{ selected_origin.city }} ({{ selected_origin.code }}){% else %}{{ raw_from }}{% endif %}" 
+                 placeholder="Origin Airport or City (e.g. DEL, Mumbai, BLR...)" 
+                 list="airportsList" autocomplete="off">
+        </div>
+
+        <div class="swap-separator" style="margin-bottom: 2px;">
+          <button type="button" class="btn-swap" onclick="swapValues('flightSearchFrom', 'flightSearchTo')" title="Swap Origin & Destination">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-plane-arrival" style="color: #000080;"></i> Destination Airport</label>
+          <input type="text" name="to_airport" id="flightSearchTo" class="form-input" 
+                 value="{% if selected_dest %}{{ selected_dest.city }} ({{ selected_dest.code }}){% else %}{{ raw_to }}{% endif %}" 
+                 placeholder="Destination Airport or City (e.g. BOM, Goa, Dubai...)" 
+                 list="airportsList" autocomplete="off">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #046A38;"></i> Departure Date</label>
+          <input type="date" name="departure_date" class="form-input" value="{{ selected_dep_date }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-chair" style="color: #000080;"></i> Cabin Class</label>
+          <select name="cabin_class" class="form-select">
+            <option value="ECONOMY" {% if selected_cabin == 'ECONOMY' %}selected{% endif %}>Economy</option>
+            <option value="PREMIUM_ECONOMY" {% if selected_cabin == 'PREMIUM_ECONOMY' %}selected{% endif %}>Premium Economy</option>
+            <option value="BUSINESS" {% if selected_cabin == 'BUSINESS' %}selected{% endif %}>Business Class</option>
+            <option value="FIRST_CLASS" {% if selected_cabin == 'FIRST_CLASS' %}selected{% endif %}>First Class</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; height: 46px;">
+            <i class="fa-solid fa-filter"></i> Search Flights
+          </button>
+        </div>
+      </div>
+
+      <datalist id="airportsList">
+        {% for apt in airports %}
+          <option value="{{ apt.city }} ({{ apt.code }})">{{ apt.name }}</option>
+          <option value="{{ apt.code }}">{{ apt.city }} - {{ apt.name }}</option>
+        {% endfor %}
+      </datalist>
+    </form>
+  </div>
+
+  <!-- 7-Day Low-Fare Strip Carousel -->
+  {% if fare_strip %}
+  <div class="fare-strip-container">
+    <div class="fare-strip-header">
+      <div class="fare-strip-title">
+        <i class="fa-solid fa-plane" style="color: #0284c7;"></i>
+        <span>7-Day Lowest Flight Fares</span>
+        <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">&bull; {{ selected_cabin }}</span>
+      </div>
+      <button type="button" class="fare-strip-open-cal" id="openFlightFareModalBtn">
+        <i class="fa-regular fa-calendar-days"></i> View 30-Day Fare Calendar &rarr;
+      </button>
+    </div>
+
+    <div class="fare-strip-items">
+      {% for item in fare_strip %}
+      <a href="?from_airport={{ raw_from }}&to_airport={{ raw_to }}&departure_date={{ item.date_str }}&cabin_class={{ selected_cabin }}&trip_type={{ trip_type }}" 
+         class="fare-strip-card {% if item.is_selected %}active-date{% endif %} {% if item.is_cheapest %}is-cheapest{% endif %} {% if not item.has_schedules %}no-fare{% endif %}"
+         title="View flights for {{ item.date_formatted }}">
+        {% if item.is_cheapest %}
+        <span class="cheapest-badge"><i class="fa-solid fa-crown"></i> Cheapest</span>
+        {% endif %}
+        <span class="fare-strip-day">{{ item.day_name }}</span>
+        <span class="fare-strip-date">{{ item.date_formatted }}</span>
+        {% if item.min_fare %}
+        <span class="fare-strip-price">From ₹{{ item.min_fare|floatformat:0 }}</span>
+        {% else %}
+        <span class="fare-strip-price">Check</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Search Header -->
+  <div class="results-header">
+    <div>
+      <h2 style="font-size: 1.6rem; color: var(--secondary);">
+        Available Flights
+        {% if selected_origin and selected_dest %}
+          for <span style="color: var(--primary);">{{ selected_origin.city }} &rarr; {{ selected_dest.city }}</span>
+        {% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Showing {{ results|length }} flights &bull; Cabin: {{ selected_cabin }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Flights List -->
+  {% if results %}
+    {% for item in results %}
+      {% with sched=item.schedule %}
+      <div class="schedule-card" style="border-left: 4px solid #0284c7;">
+        <!-- Flight Info -->
+        <div class="service-meta">
+          <span class="service-code" style="color: #0284c7;"><i class="fa-solid fa-plane"></i> {{ sched.flight.flight_number }}</span>
+          <h3 class="service-title">{{ sched.flight.airline.name }}</h3>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Aircraft: {{ sched.flight.aircraft.model_name|default:'Airbus A320' }}
+          </span>
+          <span class="badge badge-flight" style="width: fit-content; margin-top: 0.25rem;">
+            {{ sched.stops }} Stop(s) &bull; {{ sched.baggage_allowance }}
+          </span>
+        </div>
+
+        <!-- Journey Timeline -->
+        <div class="journey-timeline">
+          <div class="time-box" style="text-align: left;">
+            <div class="time">{{ sched.departure_datetime|date:"H:i" }}</div>
+            <div class="location">{{ sched.origin_airport.city }}</div>
+            <span class="badge badge-neutral" style="margin-top: 0.2rem;">{{ sched.origin_airport.code }}</span>
+          </div>
+
+          <div class="timeline-track">
+            <span class="duration-tag"><i class="fa-regular fa-clock"></i> {{ sched.formatted_duration }}</span>
+            <div class="track-line" style="background: #93c5fd;"></div>
+          </div>
+
+          <div class="time-box" style="text-align: right;">
+            <div class="time">{{ sched.arrival_datetime|date:"H:i" }}</div>
+            <div class="location">{{ sched.destination_airport.city }}</div>
+            <span class="badge badge-neutral" style="margin-top: 0.2rem;">{{ sched.destination_airport.code }}</span>
+          </div>
+        </div>
+
+        <!-- Fare and Action -->
+        <div class="fare-action-box">
+          <div class="fare-price">
+            ₹{{ item.fare }} <span>/ traveler</span>
+          </div>
+          <div class="seat-status-tag">
+            <i class="fa-solid fa-chair"></i> {{ item.available_seats }} Seats Left
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <a href="{% url 'airlines:detail' schedule_id=sched.id %}" class="btn btn-sm btn-outline">
+              Flight Info
+            </a>
+            <a href="{% url 'airlines:seat_select' schedule_id=sched.id %}?class={{ selected_cabin }}" class="btn btn-sm btn-primary">
+              Select Seats &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+    {% endfor %}
+  {% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+      <i class="fa-solid fa-plane-slash" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+      <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">No direct flights found for this route or date</h3>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Try modifying departure dates or select popular metro airport pairs like Delhi (DEL) and Mumbai (BOM).</p>
+      <a href="{% url 'airlines:search' %}" class="btn btn-primary">View All Available Flights</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- 30-Day Flight Fare Calendar Modal -->
+<div class="cal-modal-backdrop" id="flightFareModal">
+  <div class="cal-modal-card" style="max-width: 620px;">
+    <div class="cal-modal-header">
+      <h3>
+        <i class="fa-solid fa-plane-departure" style="color: #0284c7;"></i>
+        <span>30-Day Low Fare Flight Calendar</span>
+      </h3>
+      <button type="button" class="cal-modal-close" id="closeFlightFareModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    
+    <div class="cal-modal-body" style="padding: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <button type="button" class="cal-nav-btn" id="flightFareCalPrevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="flightFareCalMonthTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--secondary);">October 2026</span>
+        <button type="button" class="cal-nav-btn" id="flightFareCalNextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="fare-modal-grid">
+        <div class="fare-modal-day-head">Mon</div>
+        <div class="fare-modal-day-head">Tue</div>
+        <div class="fare-modal-day-head">Wed</div>
+        <div class="fare-modal-day-head">Thu</div>
+        <div class="fare-modal-day-head">Fri</div>
+        <div class="fare-modal-day-head" style="color: #ef4444;">Sat</div>
+        <div class="fare-modal-day-head" style="color: #ef4444;">Sun</div>
+      </div>
+
+      <div class="fare-modal-grid" id="flightFareModalDaysGrid" style="margin-top: 6px;">
+        <!-- Populated via AJAX -->
+      </div>
+      
+      <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 12px; height: 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 3px;"></span>
+          <span>Lowest Fare of the Month</span>
+        </div>
+        <div>
+          <i class="fa-solid fa-info-circle"></i> Click any date to load search results
+        </div>
+      </div>
+    </div>
+    
+    <div class="cal-modal-footer">
+      <button type="button" class="btn btn-outline" id="flightFareModalCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function swapValues(id1, id2) {
+    const el1 = document.getElementById(id1);
+    const el2 = document.getElementById(id2);
+    if (el1 && el2) {
+      const temp = el1.value;
+      el1.value = el2.value;
+      el2.value = temp;
+      el1.style.transition = 'transform 0.15s ease';
+      el2.style.transition = 'transform 0.15s ease';
+      el1.style.transform = 'scale(1.02)';
+      el2.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        el1.style.transform = 'scale(1)';
+        el2.style.transform = 'scale(1)';
+      }, 150);
+    }
+  }
+
+  // Flight Fare Calendar Modal Logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const flightFareModal = document.getElementById('flightFareModal');
+    const openBtn = document.getElementById('openFlightFareModalBtn');
+    const closeBtn = document.getElementById('closeFlightFareModalBtn');
+    const footerCloseBtn = document.getElementById('flightFareModalCloseBtn');
+    const monthTitle = document.getElementById('flightFareCalMonthTitle');
+    const daysGrid = document.getElementById('flightFareModalDaysGrid');
+    const prevBtn = document.getElementById('flightFareCalPrevBtn');
+    const nextBtn = document.getElementById('flightFareCalNextBtn');
+
+    const rawFrom = "{{ raw_from }}";
+    const rawTo = "{{ raw_to }}";
+    const cabinClass = "{{ selected_cabin }}";
+    const selectedDateStr = "{{ selected_dep_date }}";
+    const tripType = "{{ trip_type }}";
+
+    const initialDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
+    let calYear = initialDate.getFullYear();
+    let calMonth = initialDate.getMonth() + 1; // 1-indexed
+
+    function openModal() {
+      if (flightFareModal) {
+        flightFareModal.classList.add('active');
+        loadFlightFareCalendar(calYear, calMonth);
+      }
+    }
+
+    function closeModal() {
+      if (flightFareModal) flightFareModal.classList.remove('active');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeModal);
+    if (flightFareModal) {
+      flightFareModal.addEventListener('click', (e) => {
+        if (e.target === flightFareModal) closeModal();
+      });
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        calMonth--;
+        if (calMonth < 1) {
+          calMonth = 12;
+          calYear--;
+        }
+        loadFlightFareCalendar(calYear, calMonth);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        calMonth++;
+        if (calMonth > 12) {
+          calMonth = 1;
+          calYear++;
+        }
+        loadFlightFareCalendar(calYear, calMonth);
+      });
+    }
+
+    function loadFlightFareCalendar(year, month) {
+      if (!daysGrid) return;
+      daysGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem 0; color: var(--text-muted);">
+          <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary);"></i>
+          <p style="margin-top: 0.5rem; font-size: 0.85rem;">Fetching live flight fares for ${year}-${month}...</p>
+        </div>
+      `;
+
+      const apiUrl = `/airlines/api/fare-calendar/?from_airport=${encodeURIComponent(rawFrom)}&to_airport=${encodeURIComponent(rawTo)}&cabin_class=${encodeURIComponent(cabinClass)}&year=${year}&month=${month}`;
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            monthTitle.textContent = `${data.month_name} ${data.year}`;
+            renderDays(data);
+          } else {
+            daysGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--danger); padding: 1rem;">Could not load flight fare data.</div>`;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          daysGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--danger); padding: 1rem;">Network error fetching flight fares.</div>`;
+        });
+    }
+
+    function renderDays(data) {
+      daysGrid.innerHTML = '';
+      const firstDayIdx = new Date(data.year, data.month - 1, 1).getDay();
+      const startOffset = (firstDayIdx + 6) % 7; // Monday start
+
+      for (let i = 0; i < startOffset; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'fare-modal-cell disabled';
+        daysGrid.appendChild(emptyCell);
+      }
+
+      data.days.forEach(d => {
+        const cell = document.createElement('div');
+        cell.className = 'fare-modal-cell';
+        if (d.is_past) cell.classList.add('disabled');
+        if (d.date_str === selectedDateStr) cell.classList.add('selected-day');
+        if (d.is_cheapest) cell.classList.add('cheapest-day');
+
+        let priceHtml = '<span class="fare-modal-price" style="color: var(--text-light); font-size: 0.65rem;">--</span>';
+        if (d.min_fare) {
+          priceHtml = `<span class="fare-modal-price">₹${Math.round(d.min_fare)}</span>`;
+        }
+
+        cell.innerHTML = `
+          <span class="fare-modal-date-num">${d.day_num}</span>
+          ${priceHtml}
+        `;
+
+        if (!d.is_past) {
+          cell.addEventListener('click', () => {
+            window.location.href = `?from_airport=${encodeURIComponent(rawFrom)}&to_airport=${encodeURIComponent(rawTo)}&departure_date=${d.date_str}&cabin_class=${encodeURIComponent(cabinClass)}&trip_type=${encodeURIComponent(tripType)}`;
+          });
+        }
+
+        daysGrid.appendChild(cell);
+      });
+    }
+  });
+</script>
+{% endblock %}

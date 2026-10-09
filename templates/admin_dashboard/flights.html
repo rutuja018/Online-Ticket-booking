@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Flights & Schedules — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Aviation Flight Inventory</h1>
+      <p>Active scheduled flights, aircraft configurations, and cabin fares</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+      </a>
+      <a href="/admin/airlines/flightschedule/add/" target="_blank" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add New Flight
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Flight No</th>
+          <th>Airline</th>
+          <th>Sector (Origin &rarr; Dest)</th>
+          <th>Departure</th>
+          <th>Duration</th>
+          <th>Economy Fare</th>
+          <th>Status</th>
+          <th>Django Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td><strong style="color: #0284c7;">{{ s.flight.flight_number }}</strong></td>
+          <td><strong>{{ s.flight.airline.name }}</strong></td>
+          <td>{{ s.origin_airport.code }} &rarr; {{ s.destination_airport.code }}</td>
+          <td>{{ s.departure_datetime|date:"d M, H:i" }}</td>
+          <td>{{ s.formatted_duration }} ({{ s.stops }} stops)</td>
+          <td><strong>₹{{ s.fare_economy }}</strong></td>
+          <td>
+            {% if s.is_active %}
+              <span class="badge badge-success">Scheduled</span>
+            {% else %}
+              <span class="badge badge-danger">Grounded</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/airlines/flightschedule/{{ s.id }}/change/" target="_blank" class="btn btn-sm btn-outline">
+              Edit in Admin
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

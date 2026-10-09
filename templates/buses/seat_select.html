@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Select Bus Deck Seats — {{ schedule.bus.operator.name }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.5rem 5rem 1.5rem;">
+  <!-- Bus Header Summary -->
+  <div class="card" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, #0f172a, #9a3412); color: #fff;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span class="badge" style="background: rgba(255,255,255,0.2); color: #fff; margin-bottom: 0.4rem;">
+          <i class="fa-solid fa-bus"></i> {{ schedule.bus.operator.name }} &bull; {{ schedule.bus.get_bus_type_display }}
+        </span>
+        <h2 style="color: #fff; font-size: 1.6rem; margin-bottom: 0.2rem;">
+          {{ schedule.route.source_city }} &rarr; {{ schedule.route.destination_city }}
+        </h2>
+        <div style="font-size: 0.9rem; color: #fed7aa;">
+          Journey Date: {{ schedule.journey_date }} &bull; Departure: {{ schedule.departure_time|time:"H:i" }} &bull; Reg: {{ schedule.bus.bus_number }}
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 0.85rem; color: #fed7aa;">Fare Per Seat</span>
+        <div style="font-size: 1.75rem; font-weight: 800; color: #fff;">₹{{ fare_per_seat }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="seat-legend">
+    <div class="legend-item">
+      <div class="legend-box available"></div>
+      <span>Available</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box selected"></div>
+      <span>Selected</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box occupied"></div>
+      <span>Occupied</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box ladies"></div>
+      <span>Reserved for Women</span>
+    </div>
+  </div>
+
+  <form method="POST" action="{% url 'bookings:create' %}" id="busBookingForm">
+    {% csrf_token %}
+    <input type="hidden" name="transport_type" id="transportTypeInput" value="BUS">
+    <input type="hidden" name="schedule_id" value="{{ schedule.id }}">
+    <input type="hidden" name="travel_class" value="{{ schedule.bus.bus_type }}">
+    <input type="hidden" name="fare_per_seat" id="farePerSeatInput" value="{{ fare_per_seat }}">
+    <input type="hidden" name="selected_seats" id="selectedSeatsInput" value="">
+
+    <div class="seat-booking-layout">
+      <!-- Left Column: Bus Lower & Upper Decks + Passenger Details -->
+      <div>
+        <div class="seat-map-wrapper mb-4" style="margin-bottom: 2rem;">
+          <div class="coach-header">
+            <h3 style="font-size: 1.2rem; color: var(--secondary);">
+              <i class="fa-solid fa-bus-simple" style="color: #ea580c;"></i> Bus Deck Layout (Lower & Upper)
+            </h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Click on available seats/berths to select (Max 6)</span>
+          </div>
+
+          <div class="bus-layout-grid">
+            <!-- Lower Deck -->
+            <div class="bus-deck-box">
+              <div class="bus-deck-title">
+                <i class="fa-solid fa-layer-group"></i> Lower Deck
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-dharmachakra"></i> Driver Cabin
+              </div>
+
+              <div class="bus-seats-container">
+                {% for seat in lower_seats %}
+                  <div class="bus-seat-btn {% if seat.seat_type == 'SLEEPER' %}sleeper{% endif %} {% if seat.is_ladies_only %}ladies{% endif %} {% if seat.is_booked %}occupied{% endif %}"
+                       data-seat-id="{{ seat.seat_number }}"
+                       data-seat-number="{{ seat.seat_number }}">
+                    <div style="font-weight: 800; font-size: 0.95rem;">{{ seat.seat_number }}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">{{ seat.get_seat_type_display }}</div>
+                    {% if seat.is_ladies_only %}
+                      <div style="font-size: 0.65rem; color: #ec4899; font-weight: 700;">Ladies</div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Upper Deck -->
+            <div class="bus-deck-box">
+              <div class="bus-deck-title">
+                <i class="fa-solid fa-bed"></i> Upper Deck (Sleepers)
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-bottom: 0.75rem;">
+                Front View
+              </div>
+
+              <div class="bus-seats-container">
+                {% for seat in upper_seats %}
+                  <div class="bus-seat-btn sleeper {% if seat.is_booked %}occupied{% endif %}"
+                       data-seat-id="{{ seat.seat_number }}"
+                       data-seat-number="{{ seat.seat_number }}">
+                    <div style="font-weight: 800; font-size: 0.95rem;">{{ seat.seat_number }}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Sleeper</div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passenger Details Section -->
+        <div class="card" style="padding: 2rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--secondary);">
+            <i class="fa-solid fa-address-card" style="color: #ea580c;"></i> Passenger Information
+          </h3>
+          <div id="passengerFormsContainer">
+            <div style="text-align: center; padding: 2.5rem; background: var(--bg-subtle); border-radius: var(--radius-lg); border: 1.5px dashed var(--border);">
+              <i class="fa-solid fa-users" style="font-size: 2.2rem; color: var(--text-light); margin-bottom: 0.5rem;"></i>
+              <p style="color: var(--text-muted); font-weight: 500;">Select seats on the decks above to enter passenger details.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sticky Fare Breakdown -->
+      <div>
+        <div class="booking-summary-sidebar">
+          <div class="summary-header">
+            <h3 style="font-size: 1.25rem; color: var(--secondary);">Bus Fare Summary</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Taxes and toll convenience breakdown</p>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-size: 0.85rem;">Selected Seats / Berths (<span id="selectedCountDisplay">0</span>)</label>
+            <div class="selected-seats-badge-container" id="selectedSeatChips">
+              <span class="text-muted" style="font-size: 0.85rem;">No seats selected yet</span>
+            </div>
+          </div>
+
+          <div class="price-item">
+            <span>Base Bus Fare</span>
+            <strong id="baseFareDisplay">₹0.00</strong>
+          </div>
+          <div class="price-item">
+            <span>GST / State Tax (5%)</span>
+            <strong id="taxDisplay">₹0.00</strong>
+          </div>
+          <div class="price-item">
+            <span>Platform Convenience Fee</span>
+            <strong>₹49.00</strong>
+          </div>
+
+          <div style="margin: 1.25rem 0;">
+            <label class="form-label" style="font-size: 0.8rem;">Promo Code</label>
+            <input type="text" name="promo_code" class="form-input" placeholder="e.g. RAILAWAY100" style="text-transform: uppercase;">
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Use <strong>RAILAWAY100</strong> for ₹100 instant discount.</small>
+          </div>
+
+          <div class="price-item total">
+            <span>Total Payable</span>
+            <span id="totalFareDisplay" style="color: #ea580c;">₹0.00</span>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; background: #ea580c; border-color: #ea580c;" id="proceedToPayBtn" disabled>
+              <i class="fa-solid fa-lock"></i> Proceed to Pay & Book
+            </button>
+            <p style="font-size: 0.75rem; text-align: center; color: var(--text-muted); margin-top: 0.75rem;">
+              <i class="fa-solid fa-shield-check"></i> Instant M-Ticket & SMS Confirmation
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/seat_selection.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Hotels & Rooms — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Hotel & Room Inventory</h1>
+      <p>Verified accommodations, active room categories, tariffs, and availability quotas</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+      </a>
+      <a href="/admin/hotels/hotel/add/" target="_blank" class="btn btn-primary" style="background: #9333ea;">
+        <i class="fa-solid fa-plus"></i> Add New Hotel in Django Admin
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Hotel Name</th>
+          <th>City & State</th>
+          <th>Type & Stars</th>
+          <th>Guest Score</th>
+          <th>Room Categories</th>
+          <th>Min Tariff</th>
+          <th>Status</th>
+          <th>Admin Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in hotels %}
+        <tr>
+          <td>
+            <strong style="font-size: 1rem; color: var(--secondary);">{{ h.name }}</strong>
+            {% if h.is_featured %}
+              <span class="badge" style="background: #0F172A; color: #fff; font-size: 0.65rem; margin-left: 0.25rem;">Featured</span>
+            {% endif %}
+          </td>
+          <td>{{ h.city }}, {{ h.state }}</td>
+          <td>
+            <span style="color: #F59E0B; font-size: 0.85rem;">
+              {% for _ in h.star_range %}★{% endfor %}
+            </span>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ h.get_hotel_type_display }}</div>
+          </td>
+          <td>
+            <span class="badge {{ h.rating_badge_class }}">
+              {{ h.guest_rating }} ({{ h.review_count }})
+            </span>
+          </td>
+          <td>
+            <span class="badge badge-neutral">{{ h.rooms.count }} Categories</span>
+          </td>
+          <td><strong>₹{{ h.min_price }}</strong> / night</td>
+          <td>
+            {% if h.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.35rem;">
+              <a href="{% url 'hotels:detail' hotel_id=h.id %}" target="_blank" class="btn btn-sm btn-outline-primary" title="View Listing">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              <a href="/admin/hotels/hotel/{{ h.id }}/change/" target="_blank" class="btn btn-sm btn-outline" title="Edit in Django Admin">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            No hotels registered yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}RailAway — Travel Anywhere. Book Everything.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero-content">
+    <div class="hero-pill">
+      <i class="fa-solid fa-flag" style="color: #FF9933;"></i> India's Premier Multi-Modal Travel & Hotel Network
+    </div>
+    <h1 class="hero-title">
+      Travel Anywhere. <span class="tricolor-text">Book Everything.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Search, select berths, seats & luxury hotel rooms across Railway, Airline, Luxury Bus, and Hotel inventories with instant confirmation.
+    </p>
+  </div>
+</section>
+
+<!-- Unified Search Component Container -->
+<div class="container" style="position: relative; z-index: 15;">
+  <div class="search-widget" id="searchWidget">
+    <!-- Tabs Header -->
+    <div class="search-tabs">
+      <button type="button" class="tab-btn active" data-tab="trainSearchTab" id="tabTrainBtn">
+        <i class="fa-solid fa-train" style="color: #FF671F;"></i> Train Booking
+      </button>
+      <button type="button" class="tab-btn" data-tab="flightSearchTab" id="tabFlightBtn">
+        <i class="fa-solid fa-plane-departure" style="color: #1E3A8A;"></i> Flight Booking
+      </button>
+      <button type="button" class="tab-btn" data-tab="busSearchTab" id="tabBusBtn">
+        <i class="fa-solid fa-bus" style="color: #046A38;"></i> Bus Booking
+      </button>
+      <button type="button" class="tab-btn" data-tab="hotelSearchTab" id="tabHotelBtn">
+        <i class="fa-solid fa-hotel" style="color: #9333ea;"></i> Hotel Booking
+      </button>
+    </div>
+
+    <!-- 1. TRAIN SEARCH TAB -->
+    <div class="tab-content active" id="trainSearchTab">
+      <form action="{% url 'railways:search' %}" method="GET">
+        <div class="form-row" style="display: grid; grid-template-columns: 2.2fr auto 2.2fr 1.4fr 1.4fr 1.2fr; gap: 0.75rem; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-location-dot" style="color: #FF671F;"></i> From Station / City</label>
+            <input type="text" name="from_station" id="homeTrainFrom" class="form-input" placeholder="Type station, code or city (e.g. NDLS, Mumbai, Pune, Jaipur...)" list="homeTrainStationList" autocomplete="off" required>
+          </div>
+
+          <div class="swap-separator" style="margin-bottom: 2px;">
+            <button type="button" class="btn-swap" onclick="swapValues('homeTrainFrom', 'homeTrainTo')" title="Swap Origin & Destination">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-location-crosshairs" style="color: #046A38;"></i> To Station / City</label>
+            <input type="text" name="to_station" id="homeTrainTo" class="form-input" placeholder="Type destination station or city (e.g. Varanasi, Goa, Delhi...)" list="homeTrainStationList" autocomplete="off" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #FF671F;"></i> Journey Date</label>
+            <input type="date" name="journey_date" class="form-input" value="{{ today }}" min="{{ today }}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-couch" style="color: #000080;"></i> Class</label>
+            <select name="travel_class" class="form-select">
+              <option value="SLEEPER">Sleeper (SL)</option>
+              <option value="AC_3_TIER">AC 3 Tier (3A)</option>
+              <option value="AC_2_TIER">AC 2 Tier (2A)</option>
+              <option value="FIRST_CLASS">First Class (1A)</option>
+              <option value="GENERAL">General (2S)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px;" id="trainSearchSubmitBtn">
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+          </div>
+        </div>
+
+        <datalist id="homeTrainStationList">
+          {% for stn in stations %}
+            <option value="{{ stn.name }} ({{ stn.code }})">{{ stn.city }}, {{ stn.state }}</option>
+            <option value="{{ stn.city }} Junction ({{ stn.code }})">{{ stn.name }}</option>
+          {% endfor %}
+        </datalist>
+      </form>
+    </div>
+
+    <!-- 2. FLIGHT SEARCH TAB -->
+    <div class="tab-content" id="flightSearchTab">
+      <form action="{% url 'airlines:search' %}" method="GET">
+        <!-- Trip Type Radio -->
+        <div style="display: flex; gap: 1.5rem; margin-bottom: 1rem;">
+          <label style="font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+            <input type="radio" name="trip_type" value="oneway" checked> One Way
+          </label>
+          <label style="font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+            <input type="radio" name="trip_type" value="roundtrip"> Round Trip
+          </label>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 2.2fr auto 2.2fr 1.3fr 1.3fr 1.3fr 1.2fr; gap: 0.75rem; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-plane-departure" style="color: #FF671F;"></i> Origin Airport / City</label>
+            <input type="text" name="from_airport" id="homeFlightFrom" class="form-input" placeholder="Type city or code (e.g. DEL, Mumbai, BLR, Goa...)" list="homeAirportsList" autocomplete="off" required>
+          </div>
+
+          <div class="swap-separator" style="margin-bottom: 2px;">
+            <button type="button" class="btn-swap" onclick="swapValues('homeFlightFrom', 'homeFlightTo')" title="Swap Origin & Destination">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-plane-arrival" style="color: #000080;"></i> Destination Airport / City</label>
+            <input type="text" name="to_airport" id="homeFlightTo" class="form-input" placeholder="Type destination or code (e.g. BOM, Dubai, Jaipur...)" list="homeAirportsList" autocomplete="off" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #046A38;"></i> Departure</label>
+            <input type="date" name="departure_date" class="form-input" value="{{ today }}" min="{{ today }}" required>
+          </div>
+
+          <div class="form-group" id="returnDateGroup" style="margin-bottom: 0; display: none;">
+            <label class="form-label"><i class="fa-solid fa-calendar-plus" style="color: #FF671F;"></i> Return</label>
+            <input type="date" name="return_date" class="form-input" value="{{ tomorrow }}" min="{{ today }}">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-chair" style="color: #000080;"></i> Cabin Class</label>
+            <select name="cabin_class" class="form-select">
+              <option value="ECONOMY">Economy</option>
+              <option value="PREMIUM_ECONOMY">Premium Economy</option>
+              <option value="BUSINESS">Business Class</option>
+              <option value="FIRST_CLASS">First Class</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px;" id="flightSearchSubmitBtn">
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+          </div>
+        </div>
+
+        <datalist id="homeAirportsList">
+          {% for apt in airports %}
+            <option value="{{ apt.city }} ({{ apt.code }})">{{ apt.name }}</option>
+            <option value="{{ apt.code }}">{{ apt.city }} - {{ apt.name }}</option>
+          {% endfor %}
+        </datalist>
+      </form>
+    </div>
+
+    <!-- 3. BUS SEARCH TAB -->
+    <div class="tab-content" id="busSearchTab">
+      <form action="{% url 'buses:search' %}" method="GET">
+        <div class="form-row" style="display: grid; grid-template-columns: 2.2fr auto 2.2fr 1.4fr 1.4fr 1.2fr; gap: 0.75rem; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-city" style="color: #FF671F;"></i> From City</label>
+            <input type="text" name="from_city" id="homeBusFrom" class="form-input" placeholder="Type departure city (e.g. Pune, Delhi, Mumbai, Jaipur...)" list="homeBusCitiesList" autocomplete="off" required>
+          </div>
+
+          <div class="swap-separator" style="margin-bottom: 2px;">
+            <button type="button" class="btn-swap" onclick="swapValues('homeBusFrom', 'homeBusTo')" title="Swap Origin & Destination">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-location-dot" style="color: #046A38;"></i> To City</label>
+            <input type="text" name="to_city" id="homeBusTo" class="form-input" placeholder="Type arrival city (e.g. Goa, Manali, Shimla, Hyderabad...)" list="homeBusCitiesList" autocomplete="off" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #000080;"></i> Travel Date</label>
+            <input type="date" name="travel_date" class="form-input" value="{{ today }}" min="{{ today }}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-van-shuttle" style="color: #046A38;"></i> Bus Type</label>
+            <select name="bus_type" class="form-select">
+              <option value="">All Bus Types</option>
+              <option value="VOLVO">Volvo Multi-Axle Luxury</option>
+              <option value="AC_SLEEPER">AC Sleeper (2+1)</option>
+              <option value="AC_SEATER">AC Seater (2+2)</option>
+              <option value="SEMI_SLEEPER">Semi-Sleeper AC</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px;" id="busSearchSubmitBtn">
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+          </div>
+        </div>
+
+        <datalist id="homeBusCitiesList">
+          {% for c in all_bus_cities %}
+            <option value="{{ c }}"></option>
+          {% endfor %}
+        </datalist>
+      </form>
+    </div>
+
+    <!-- 4. HOTEL SEARCH TAB -->
+    <div class="tab-content" id="hotelSearchTab">
+      <form action="{% url 'hotels:search' %}" method="GET">
+        <div class="form-row" style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 1.2fr; gap: 1rem; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-city" style="color: #9333ea;"></i> Destination / City / Hotel</label>
+            <input type="text" name="city" class="form-input" placeholder="Type any destination or city (e.g. Goa, Jaipur, Manali, Udaipur...)" list="homeHotelCityList" autocomplete="off">
+            <datalist id="homeHotelCityList">
+              {% for c in hotel_cities %}
+                <option value="{{ c }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #046A38;"></i> Check-in</label>
+            <input type="date" name="check_in" id="homeHotelCheckIn" class="form-input" value="{{ today }}" min="{{ today }}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-calendar-check" style="color: #000080;"></i> Check-out</label>
+            <input type="date" name="check_out" id="homeHotelCheckOut" class="form-input" value="{{ tomorrow }}" min="{{ today }}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-door-closed" style="color: #FF671F;"></i> Rooms</label>
+            <select name="rooms" class="form-select">
+              <option value="1">1 Room</option>
+              <option value="2">2 Rooms</option>
+              <option value="3">3 Rooms</option>
+              <option value="4">4+ Rooms</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label"><i class="fa-solid fa-users" style="color: #046A38;"></i> Guests</label>
+            <select name="guests" class="form-select">
+              <option value="1">1 Guest</option>
+              <option value="2" selected>2 Guests</option>
+              <option value="3">3 Guests</option>
+              <option value="4">4 Guests</option>
+              <option value="6">5+ Guests</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);" id="hotelSearchSubmitBtn">
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Promotional Coupons Banner (Tricolor Theme) -->
+<div class="container" style="margin-top: 3.5rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+    <!-- Saffron / Kesari Card -->
+    <div style="background: linear-gradient(135deg, #E65100 0%, #FF671F 60%, #FF8F3D 100%); color: #fff; padding: 1.6rem; border-radius: var(--radius-lg); display: flex; align-items: center; gap: 1.25rem; box-shadow: 0 10px 20px -5px rgba(255, 103, 31, 0.35);">
+      <div style="font-size: 2.3rem; opacity: 0.95;"><i class="fa-solid fa-tags"></i></div>
+      <div>
+        <span class="badge" style="background: rgba(255,255,255,0.25); color: #fff; margin-bottom: 0.35rem; font-weight: 800; letter-spacing: 0.8px;">CODE: TIRANGA100</span>
+        <h4 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.25rem;">Flat ₹100 Off on First Booking</h4>
+        <p style="font-size: 0.85rem; opacity: 0.9;">Applicable across all Train, Flight, Bus & Hotel bookings.</p>
+      </div>
+    </div>
+
+    <!-- Ashoka Navy & Silver Card -->
+    <div style="background: linear-gradient(135deg, #0A1931 0%, #000080 50%, #1E3A8A 100%); color: #fff; padding: 1.6rem; border-radius: var(--radius-lg); display: flex; align-items: center; gap: 1.25rem; box-shadow: 0 10px 20px -5px rgba(0, 0, 128, 0.3);">
+      <div style="font-size: 2.3rem; opacity: 0.95;"><i class="fa-solid fa-shield-halved"></i></div>
+      <div>
+        <span class="badge" style="background: rgba(255,255,255,0.25); color: #fff; margin-bottom: 0.35rem; font-weight: 800; letter-spacing: 0.8px;">INSTANT REFUND</span>
+        <h4 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.25rem;">Zero Cancellation Hassle</h4>
+        <p style="font-size: 0.85rem; opacity: 0.9;">1-Click automated refunds back to your payment source.</p>
+      </div>
+    </div>
+
+    <!-- India Green / Harit Card -->
+    <div style="background: linear-gradient(135deg, #046A38 0%, #0D8249 50%, #10B981 100%); color: #fff; padding: 1.6rem; border-radius: var(--radius-lg); display: flex; align-items: center; gap: 1.25rem; box-shadow: 0 10px 20px -5px rgba(4, 106, 56, 0.35);">
+      <div style="font-size: 2.3rem; opacity: 0.95;"><i class="fa-solid fa-hotel"></i></div>
+      <div>
+        <span class="badge" style="background: rgba(255,255,255,0.25); color: #fff; margin-bottom: 0.35rem; font-weight: 800; letter-spacing: 0.8px;">HOTEL BOOKINGS</span>
+        <h4 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.25rem;">Luxury & Heritage Hotels</h4>
+        <p style="font-size: 0.85rem; opacity: 0.9;">Best price guarantee across top destinations in India.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Value-Add Services Quick Hub (Food in Train, Retiring Rooms) -->
+<div class="container" style="margin-top: 3.5rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+    <!-- Service 1: Food in Train -->
+    <div class="card" style="padding: 1.75rem; border-top: 5px solid #FF671F; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+      <div>
+        <span class="badge badge-warning" style="margin-bottom: 0.4rem; font-size: 0.75rem;">
+          <i class="fa-solid fa-utensils"></i> E-CATERING
+        </span>
+        <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.35rem;">Order Food in Train</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+          Hot Thalis, Dum Biryanis, and Jain meals delivered right to your coach berth.
+        </p>
+        <a href="{% url 'food_catering:index' %}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%);">
+          Order Food Now &rarr;
+        </a>
+      </div>
+      <div style="font-size: 3.5rem; color: #FF671F; opacity: 0.85; padding-left: 1rem;">
+        <i class="fa-solid fa-bowl-food"></i>
+      </div>
+    </div>
+
+    <!-- Service 2: Station Retiring Rooms -->
+    <div class="card" style="padding: 1.75rem; border-top: 5px solid #000080; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+      <div>
+        <span class="badge badge-flight" style="margin-bottom: 0.4rem; font-size: 0.75rem;">
+          <i class="fa-solid fa-bed"></i> STATION TRANSIT STAY
+        </span>
+        <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.35rem;">Station Retiring Rooms</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+          AC Dormitory beds from ₹250 and Deluxe rooms at 100+ railway stations.
+        </p>
+        <a href="{% url 'retiring_rooms:index' %}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #000080 0%, #1E3A8A 100%);">
+          Book Station Rooms &rarr;
+        </a>
+      </div>
+      <div style="font-size: 3.5rem; color: #000080; opacity: 0.85; padding-left: 1rem;">
+        <i class="fa-solid fa-bed"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Upcoming Journeys -->
+<div class="container" style="margin-top: 4.5rem; margin-bottom: 3.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem;">
+    <div>
+      <span class="badge badge-primary" style="margin-bottom: 0.4rem;"><i class="fa-solid fa-fire"></i> TRENDING CONNECTIONS</span>
+      <h2 style="font-size: 1.85rem; color: var(--secondary);">Featured High-Demand Routes</h2>
+    </div>
+    <a href="{% url 'railways:search' %}" class="btn btn-sm btn-outline-primary" style="font-weight: 700;">Explore All Routes &rarr;</a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+    <!-- Featured Train -->
+    {% if featured_trains %}
+      {% for train_sched in featured_trains %}
+        <div class="card" style="padding: 1.5rem; border-top: 4px solid #FF671F;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span class="badge badge-train"><i class="fa-solid fa-train"></i> Train {{ train_sched.train.train_number }}</span>
+            <span style="font-size: 0.85rem; font-weight: 700; color: #046A38;"><i class="fa-solid fa-circle" style="font-size: 0.6rem;"></i> Available</span>
+          </div>
+          <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">{{ train_sched.train.name }}</h4>
+          <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <strong>{{ train_sched.source_station.city }}</strong> &rarr; <strong>{{ train_sched.destination_station.city }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Starts from</span><br>
+              <strong style="font-size: 1.25rem; color: var(--secondary);">₹{{ train_sched.fare_sleeper }}</strong>
+            </div>
+            <a href="{% url 'railways:seat_select' schedule_id=train_sched.id %}?class=SLEEPER" class="btn btn-sm btn-primary">Book Berths</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Featured Flight -->
+    {% if featured_flights %}
+      {% for fl_sched in featured_flights %}
+        <div class="card" style="padding: 1.5rem; border-top: 4px solid #000080;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span class="badge badge-flight"><i class="fa-solid fa-plane"></i> {{ fl_sched.flight.flight_number }}</span>
+            <span style="font-size: 0.85rem; font-weight: 700; color: #000080;">{{ fl_sched.flight.airline.name }}</span>
+          </div>
+          <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">{{ fl_sched.origin_airport.city }} to {{ fl_sched.destination_airport.city }}</h4>
+          <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Non-stop &bull; {{ fl_sched.formatted_duration }} &bull; Meal Included
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Economy from</span><br>
+              <strong style="font-size: 1.25rem; color: var(--secondary);">₹{{ fl_sched.fare_economy }}</strong>
+            </div>
+            <a href="{% url 'airlines:seat_select' schedule_id=fl_sched.id %}?class=ECONOMY" class="btn btn-sm btn-primary">Select Seat</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Featured Bus -->
+    {% if featured_buses %}
+      {% for bus_sched in featured_buses %}
+        <div class="card" style="padding: 1.5rem; border-top: 4px solid #046A38;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span class="badge badge-bus"><i class="fa-solid fa-bus"></i> {{ bus_sched.bus.get_bus_type_display }}</span>
+            <span style="font-size: 0.85rem; font-weight: 700; color: #046A38;">★ {{ bus_sched.bus.operator.rating }}</span>
+          </div>
+          <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">{{ bus_sched.route.source_city }} to {{ bus_sched.route.destination_city }}</h4>
+          <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            {{ bus_sched.bus.operator.name }} &bull; {{ bus_sched.formatted_duration }}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Fare from</span><br>
+              <strong style="font-size: 1.25rem; color: var(--secondary);">₹{{ bus_sched.base_fare }}</strong>
+            </div>
+            <a href="{% url 'buses:seat_select' schedule_id=bus_sched.id %}" class="btn btn-sm btn-primary">Select Deck</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- Featured Luxury & Heritage Hotels Section -->
+{% if featured_hotels %}
+<div class="container" style="margin-bottom: 4.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem;">
+    <div>
+      <span class="badge badge-success" style="margin-bottom: 0.4rem;"><i class="fa-solid fa-hotel"></i> CURATED STAYS</span>
+      <h2 style="font-size: 1.85rem; color: var(--secondary);">Featured Heritage & Luxury Stays</h2>
+    </div>
+    <a href="{% url 'hotels:index' %}" class="btn btn-sm btn-outline-primary" style="font-weight: 700;">Explore All Hotels &rarr;</a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+    {% for h in featured_hotels %}
+      <div class="card" style="padding: 0; overflow: hidden; border-top: 4px solid #9333ea;">
+        <div style="height: 180px; overflow: hidden; position: relative;">
+          <img src="{{ h.main_image }}" alt="{{ h.name }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80';">
+          <span class="badge" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.7rem;">
+            ★ {{ h.guest_rating }} ({{ h.review_count }})
+          </span>
+        </div>
+        <div style="padding: 1.25rem;">
+          <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-bottom: 0.25rem;">
+            {{ h.city|upper }} &bull; {{ h.get_hotel_type_display }}
+          </div>
+          <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem; color: var(--secondary);">{{ h.name }}</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ h.description }}
+          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">From</span><br>
+              <strong style="font-size: 1.25rem; color: var(--secondary);">₹{{ h.min_price }}</strong>
+            </div>
+            <a href="{% url 'hotels:detail' hotel_id=h.id %}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);">
+              View Stays
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- 3-Step Simple Booking Flow Section (Tricolor Step Badges) -->
+<section style="background: var(--bg-subtle); padding: 5rem 0; position: relative;">
+  <div class="container">
+    <div style="text-align: center; max-width: 600px; margin: 0 auto 3.5rem auto;">
+      <span class="badge badge-primary" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-bolt"></i> EFFORTLESS TRAVEL</span>
+      <h2 style="font-size: 2.2rem; color: var(--secondary);">Book in 3 Simple Steps</h2>
+      <p style="color: var(--text-muted);">From search to confirmed boarding ticket and hotel stay in under 2 minutes.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; position: relative;">
+      <!-- Step 1: Saffron -->
+      <div class="card" style="text-align: center; padding: 2.5rem 1.5rem; border-top: 3px solid #FF671F;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #FFF7ED; color: #FF671F; border: 2px solid #FED7AA; font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; box-shadow: 0 4px 14px rgba(255, 103, 31, 0.2);">
+          1
+        </div>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--secondary);">Search & Compare</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+          Enter journey dates and choose between trains, direct flights, sleeper buses, or luxury hotel stays across India.
+        </p>
+      </div>
+
+      <!-- Step 2: Ashoka Navy / White -->
+      <div class="card" style="text-align: center; padding: 2.5rem 1.5rem; border-top: 3px solid #000080;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #EFF6FF; color: #000080; border: 2px solid #BFDBFE; font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; box-shadow: 0 4px 14px rgba(0, 0, 128, 0.2);">
+          2
+        </div>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--secondary);">Select Seats or Rooms</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+          Choose exact window berths, flight seats, sleeper decks, or deluxe rooms on interactive layouts.
+        </p>
+      </div>
+
+      <!-- Step 3: India Green -->
+      <div class="card" style="text-align: center; padding: 2.5rem 1.5rem; border-top: 3px solid #046A38;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #ECFDF5; color: #046A38; border: 2px solid #A7F3D0; font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; box-shadow: 0 4px 14px rgba(4, 106, 56, 0.2);">
+          3
+        </div>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--secondary);">Instant Pay & Get E-Pass</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+          Complete simulated checkout, receive unique PNR / Hotel Booking Ref, and immediately print your digital E-Voucher.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose RailAway Section (Balanced Tricolor Accents) -->
+<section class="container" style="padding: 5rem 1.5rem;">
+  <div style="text-align: center; max-width: 600px; margin: 0 auto 3.5rem auto;">
+    <span class="badge badge-success" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-star"></i> THE RAILAWAY ADVANTAGE</span>
+    <h2 style="font-size: 2.2rem; color: var(--secondary);">Why Millions Book With Us</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.75rem;">
+    <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+      <div style="color: #FF671F; font-size: 2rem; background: #FFF7ED; width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255, 103, 31, 0.15);">
+        <i class="fa-solid fa-cubes"></i>
+      </div>
+      <div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Multi-Modal Choice</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Train, flight, bus, and hotel inventories united in one single modern Indian portal.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+      <div style="color: #000080; font-size: 2rem; background: #EFF6FF; width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 0, 128, 0.15);">
+        <i class="fa-solid fa-shield-check"></i>
+      </div>
+      <div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Race-Condition Safe</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Database atomic inventory locking prevents double bookings and seat/room conflicts.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+      <div style="color: #046A38; font-size: 2rem; background: #ECFDF5; width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(4, 106, 56, 0.15);">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">Digital E-Vouchers</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Instant printable passes and hotel vouchers complete with scannable QR and barcodes.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+      <div style="color: #E65100; font-size: 2rem; background: #FFF7ED; width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(230, 81, 0, 0.15);">
+        <i class="fa-solid fa-money-bill-transfer"></i>
+      </div>
+      <div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem;">1-Click Cancellation</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Hassle-free automated refunds and automatic inventory release back to hotel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Verified Customer Experience & Testimonials Carousel / Grid Section -->
+<section style="background: var(--bg-subtle); padding: 5rem 0; border-top: 1px solid var(--border);">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="badge badge-primary" style="margin-bottom: 0.4rem;">
+          <i class="fa-solid fa-star"></i> REAL TRAVELER STORIES
+        </span>
+        <h2 style="font-size: 2.2rem; color: var(--secondary);">Customer Experiences & Reviews</h2>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">Overall traveler satisfaction score: <strong>4.85 / 5 ★</strong> from 25,000+ verified bookings.</p>
+      </div>
+      <a href="{% url 'experiences:hub' %}" class="btn btn-sm btn-outline-primary" style="font-weight: 700;">
+        Explore All Reviews &rarr;
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.75rem;">
+      {% if featured_reviews %}
+        {% for rev in featured_reviews %}
+        <div class="card" style="padding: 1.75rem; border-top: 4px solid {% if rev.booking_type == 'TRAIN' %}#FF671F{% elif rev.booking_type == 'FLIGHT' %}#000080{% elif rev.booking_type == 'HOTEL' %}#9333ea{% else %}#046A38{% endif %}; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span class="badge {% if rev.booking_type == 'TRAIN' %}badge-train{% elif rev.booking_type == 'FLIGHT' %}badge-flight{% elif rev.booking_type == 'HOTEL' %}badge-success{% else %}badge-warning{% endif %}" style="font-size: 0.75rem;">
+                {{ rev.get_booking_type_display }}
+              </span>
+              <div style="color: #FF671F; font-size: 0.9rem;">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= rev.rating %}
+                    <i class="fa-solid fa-star"></i>
+                  {% else %}
+                    <i class="fa-regular fa-star" style="color: #cbd5e1;"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+
+            <h4 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.4rem; line-height: 1.3;">
+              "{{ rev.title }}"
+            </h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">
+              {{ rev.review_text }}
+            </p>
+          </div>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 0.85rem; display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #FF671F, #000080); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
+              {{ rev.reviewer_name|slice:":1"|upper }}
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--secondary);">{{ rev.reviewer_name }}</div>
+              <div style="font-size: 0.75rem; color: #046A38; font-weight: 600;">
+                <i class="fa-solid fa-circle-check"></i> {{ rev.travel_tag|default:"Verified Passenger" }} &bull; {{ rev.reviewer_city }}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/search_tabs.js' %}"></script>
+<script>
+  // Swap Values helper function
+  function swapValues(id1, id2) {
+    const el1 = document.getElementById(id1);
+    const el2 = document.getElementById(id2);
+    if (el1 && el2) {
+      const temp = el1.value;
+      el1.value = el2.value;
+      el2.value = temp;
+      // Trigger subtle animation on both inputs
+      el1.style.transition = 'transform 0.15s ease';
+      el2.style.transition = 'transform 0.15s ease';
+      el1.style.transform = 'scale(1.02)';
+      el2.style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        el1.style.transform = 'scale(1)';
+        el2.style.transform = 'scale(1)';
+      }, 150);
+    }
+  }
+
+  // Date sync for hotel search tab on homepage
+  const homeIn = document.getElementById('homeHotelCheckIn');
+  const homeOut = document.getElementById('homeHotelCheckOut');
+  if (homeIn && homeOut) {
+    homeIn.addEventListener('change', () => {
+      if (homeIn.value) {
+        const d = new Date(homeIn.value);
+        d.setDate(d.getDate() + 1);
+        const nextDay = d.toISOString().split('T')[0];
+        homeOut.min = nextDay;
+        if (homeOut.value <= homeIn.value) {
+          homeOut.value = nextDay;
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

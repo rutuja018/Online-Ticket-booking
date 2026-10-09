@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancel Booking — {{ booking.pnr }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 680px; padding: 3.5rem 1.5rem 6rem 1.5rem;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'bookings:history' %}" class="btn btn-sm btn-outline" id="cancelBackToHistoryBtn">
+      <i class="fa-solid fa-arrow-left"></i> Back to My Bookings
+    </a>
+  </div>
+
+  <div class="card" style="padding: 2.5rem; border-top: 5px solid var(--danger);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--danger-light); color: var(--danger); font-size: 1.6rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 style="font-size: 1.75rem; color: var(--secondary);">
+        {% if booking.booking_status == 'PENDING' %}Cancel Pending Reservation{% else %}Cancel Reservation{% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        {% if booking.booking_status == 'PENDING' %}
+          Release allocated seats and discard pending booking for PNR <strong>{{ booking.pnr }}</strong>
+        {% else %}
+          Review refund rules and confirm seat release for PNR <strong>{{ booking.pnr }}</strong>
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Booking Summary Mini Card -->
+    <div style="background: var(--bg-subtle); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem;">
+      <div style="font-weight: 700; color: var(--secondary); font-size: 1.05rem; margin-bottom: 0.2rem;">
+        {{ booking.service_title }}
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        {{ booking.source_location }} &rarr; {{ booking.destination_location }} &bull; {{ booking.journey_date }}
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+        <span><strong>Seats:</strong> {{ booking.allocated_seats }} ({{ booking.passenger_count }} Pax)</span>
+        <span>
+          {% if booking.booking_status == 'PENDING' %}
+            <strong style="color: var(--warning);">Pending:</strong> ₹{{ booking.total_amount }}
+          {% else %}
+            <strong>Total Paid:</strong> ₹{{ booking.total_amount }}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    {% if can_cancel %}
+      {% if booking.booking_status == 'CONFIRMED' %}
+        <!-- Refund Estimation Box -->
+        <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h4 style="color: #065f46; font-size: 1.05rem; margin-bottom: 0.2rem;">
+                <i class="fa-solid fa-money-bill-transfer"></i> Estimated Refund Amount
+              </h4>
+              <span style="font-size: 0.8rem; color: #047857;">Based on RailAway cancellation tier policy</span>
+            </div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #065f46;">
+              ₹{{ estimated_refund }}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <!-- Pending Notice Box -->
+        <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid fa-info-circle" style="color: var(--primary); font-size: 1.4rem;"></i>
+            <div style="font-size: 0.9rem; color: #1e3a8a;">
+              This booking is currently unpaid. Cancelling will release the reserved seats immediately with no cancellation charge.
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="POST" id="cancelConfirmationForm">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Reason for Cancellation (Optional)</label>
+          <select name="cancellation_reason" class="form-select" style="margin-bottom: 0.75rem;">
+            <option value="Change of travel plans">Change of travel plans</option>
+            <option value="Booked another flight/train">Booked another transport mode</option>
+            <option value="Personal / Medical emergency">Personal / Medical emergency</option>
+            <option value="Trip postponed">Trip postponed</option>
+            <option value="Other">Other Reason</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+          <a href="{% url 'bookings:ticket' pnr=booking.pnr %}" class="btn btn-outline" id="keepBookingBtn">
+            Keep My Booking
+          </a>
+          <button type="submit" class="btn btn-danger" id="confirmCancelSubmitBtn">
+            <i class="fa-solid fa-ban"></i> 
+            {% if booking.booking_status == 'PENDING' %}
+              Confirm & Release Seats
+            {% else %}
+              Confirm Cancellation & Refund
+            {% endif %}
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <div style="background: var(--danger-light); border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-circle-exclamation" style="color: var(--danger); font-size: 1.8rem; margin-bottom: 0.5rem;"></i>
+        <h4 style="color: #991b1b; font-size: 1.1rem; margin-bottom: 0.3rem;">Cannot Cancel Booking</h4>
+        <p style="color: #b91c1c; font-size: 0.9rem;">{{ reason_msg }}</p>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'bookings:ticket' pnr=booking.pnr %}" class="btn btn-primary" id="backToTicketDetailsBtn">
+          <i class="fa-solid fa-ticket"></i> Back to Ticket Details
+        </a>
+        <a href="{% url 'bookings:history' %}" class="btn btn-outline" id="backToHistoryFromCancelBtn">
+          <i class="fa-solid fa-list-check"></i> Back to My Bookings
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

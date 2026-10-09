@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage All Bookings — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>All Platform Bookings</h1>
+      <p>Search by PNR, customer username, or inspect and cancel bookings with refund overrides</p>
+    </div>
+    <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Search & Filter Strip -->
+  <div class="card" style="padding: 1.25rem; margin-bottom: 2rem;">
+    <form method="GET">
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="{% url 'admin_dashboard:manage_bookings' %}" class="filter-tab {% if not selected_transport and not selected_status %}active{% endif %}">
+            All ({{ bookings|length }})
+          </a>
+          <a href="{% url 'admin_dashboard:manage_bookings' %}?transport=TRAIN" class="filter-tab {% if selected_transport == 'TRAIN' %}active{% endif %}">
+            Trains
+          </a>
+          <a href="{% url 'admin_dashboard:manage_bookings' %}?transport=FLIGHT" class="filter-tab {% if selected_transport == 'FLIGHT' %}active{% endif %}">
+            Flights
+          </a>
+          <a href="{% url 'admin_dashboard:manage_bookings' %}?transport=BUS" class="filter-tab {% if selected_transport == 'BUS' %}active{% endif %}">
+            Buses
+          </a>
+          <a href="{% url 'admin_dashboard:manage_bookings' %}?status=CONFIRMED" class="filter-tab {% if selected_status == 'CONFIRMED' %}active{% endif %}">
+            Confirmed
+          </a>
+          <a href="{% url 'admin_dashboard:manage_bookings' %}?status=CANCELLED" class="filter-tab {% if selected_status == 'CANCELLED' %}active{% endif %}">
+            Cancelled
+          </a>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" name="q" value="{{ search_query|default:'' }}" class="form-input" placeholder="Search PNR / User / Email..." style="width: 250px; padding: 0.45rem 0.85rem; font-size: 0.85rem;">
+          <button type="submit" class="btn btn-sm btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>PNR Ref</th>
+          <th>Customer</th>
+          <th>Mode</th>
+          <th>Service Title</th>
+          <th>Route & Date</th>
+          <th>Seats</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Admin Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if bookings %}
+          {% for b in bookings %}
+          <tr>
+            <td>
+              <a href="{% url 'bookings:ticket' pnr=b.pnr %}" target="_blank" style="font-family: monospace; font-weight: 800; color: var(--primary);">
+                {{ b.pnr }}
+              </a>
+            </td>
+            <td>
+              <strong>{{ b.user.username }}</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ b.user.email }}</div>
+            </td>
+            <td>
+              <span class="badge {% if b.transport_type == 'TRAIN' %}badge-train{% elif b.transport_type == 'FLIGHT' %}badge-flight{% else %}badge-bus{% endif %}">
+                {{ b.get_transport_type_display }}
+              </span>
+            </td>
+            <td>{{ b.service_title }}</td>
+            <td>
+              <div>{{ b.source_location }} &rarr; {{ b.destination_location }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ b.journey_date }}</div>
+            </td>
+            <td><span class="badge badge-neutral">{{ b.allocated_seats }}</span></td>
+            <td><strong>₹{{ b.total_amount }}</strong></td>
+            <td>
+              {% if b.booking_status == 'CONFIRMED' %}
+                <span class="badge badge-success">Confirmed</span>
+              {% elif b.booking_status == 'CANCELLED' or b.booking_status == 'REFUNDED' %}
+                <span class="badge badge-danger">Cancelled</span>
+              {% else %}
+                <span class="badge badge-warning">{{ b.booking_status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem;">
+                <a href="{% url 'bookings:ticket' pnr=b.pnr %}" target="_blank" class="btn btn-sm btn-outline-primary" title="View E-Ticket">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+                {% if b.booking_status == 'CONFIRMED' %}
+                  <form method="POST" action="{% url 'admin_dashboard:admin_cancel_booking' booking_id=b.id %}" onsubmit="return confirm('Are you sure you want to administratively cancel booking {{ b.pnr }} and issue refund?');" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" title="Admin Refund & Cancel">
+                      <i class="fa-solid fa-ban"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+              No bookings found matching query.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Travel Calendar & Itinerary Planner — RailAway{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="container calendar-container">
+  
+  <!-- Calendar Header & Navigation -->
+  <div class="calendar-top-bar">
+    <div class="calendar-title-group">
+      <h1>
+        <i class="fa-regular fa-calendar-days" style="color: var(--primary);"></i>
+        Travel Calendar & Itinerary
+      </h1>
+      <p>Interactive schedule of all your upcoming & past train journeys, flights, bus trips, hotel stays, and food orders</p>
+    </div>
+
+    <div class="calendar-action-btn-group">
+      <!-- View Mode Switcher -->
+      <div class="view-mode-toggle" title="Switch View Mode">
+        <a href="{% url 'bookings:history' %}" class="view-mode-btn" id="switchToListViewBtn">
+          <i class="fa-solid fa-list-ul"></i> List View
+        </a>
+        <a href="{% url 'bookings:calendar' %}" class="view-mode-btn active" id="switchToCalendarViewBtn">
+          <i class="fa-regular fa-calendar-days"></i> Calendar View
+        </a>
+      </div>
+
+      <!-- Export to ICS -->
+      <a href="{% url 'bookings:export_calendar_ics' %}" class="btn btn-outline" id="exportIcsBtn" title="Download .ics file for Google Calendar, Apple iCal, Outlook">
+        <i class="fa-solid fa-file-arrow-down" style="color: #046A38;"></i> Export to Calendar (.ics)
+      </a>
+
+      <a href="{% url 'core:home' %}" class="btn btn-primary" id="calBookNewTripBtn">
+        <i class="fa-solid fa-plus"></i> Book Trip
+      </a>
+    </div>
+  </div>
+
+  <!-- Next Upcoming Departure Banner (if any) -->
+  {% if next_event %}
+  <div class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border-left: 5px solid var(--primary); box-shadow: var(--shadow-sm);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 103, 31, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; color: var(--primary);">
+          <i class="{{ next_event.icon }}"></i>
+        </div>
+        <div>
+          <span style="font-size: 0.78rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+            <i class="fa-solid fa-bell"></i> NEXT UPCOMING TRAVEL
+          </span>
+          <h3 style="font-size: 1.15rem; color: var(--secondary); margin: 0.15rem 0;">
+            {{ next_event.title }} &bull; <span style="color: var(--primary);">{{ next_event.route_display }}</span>
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            <i class="fa-regular fa-calendar"></i> {{ next_event.date }} at {{ next_event.time }} &bull; 
+            <span style="font-weight: 600;">PNR / Ref:</span> {{ next_event.ref }} &bull; 
+            <span style="font-weight: 600;">Seats/Room:</span> {{ next_event.seats }}
+          </p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="badge badge-warning" id="nextTripCountdown" style="font-size: 0.82rem; padding: 0.4rem 0.8rem; font-weight: 700;" data-event-date="{{ next_event.date }}" data-event-time="{{ next_event.time }}">
+          <i class="fa-solid fa-clock"></i> Calculating countdown...
+        </div>
+        <a href="{{ next_event.url }}" class="btn btn-sm btn-primary">
+          <i class="fa-solid fa-ticket"></i> View Details
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Filter Ribbon Card -->
+  <div class="calendar-filters-card">
+    <div class="calendar-filter-pills">
+      <button type="button" class="cal-pill active" data-filter="ALL" id="filterAllEvents">
+        <i class="fa-solid fa-globe"></i> All ({{ counts.total }})
+      </button>
+      <button type="button" class="cal-pill pill-train" data-filter="TRAIN" id="filterTrainEvents">
+        <i class="fa-solid fa-train"></i> Trains ({{ counts.train }})
+      </button>
+      <button type="button" class="cal-pill pill-flight" data-filter="FLIGHT" id="filterFlightEvents">
+        <i class="fa-solid fa-plane-departure"></i> Flights ({{ counts.flight }})
+      </button>
+      <button type="button" class="cal-pill pill-bus" data-filter="BUS" id="filterBusEvents">
+        <i class="fa-solid fa-bus"></i> Buses ({{ counts.bus }})
+      </button>
+      <button type="button" class="cal-pill pill-hotel" data-filter="HOTEL" id="filterHotelEvents">
+        <i class="fa-solid fa-hotel"></i> Hotels ({{ counts.hotel }})
+      </button>
+      <button type="button" class="cal-pill pill-room" data-filter="RETIRING_ROOM" id="filterRoomEvents">
+        <i class="fa-solid fa-bed"></i> Retiring Rooms ({{ counts.retiring_room }})
+      </button>
+      <button type="button" class="cal-pill pill-food" data-filter="FOOD" id="filterFoodEvents">
+        <i class="fa-solid fa-utensils"></i> Food ({{ counts.food }})
+      </button>
+    </div>
+
+    <!-- Status Toggles -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <label style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Status:</label>
+      <select id="calStatusSelect" class="form-select" style="padding: 0.3rem 0.75rem; font-size: 0.82rem; width: auto; height: 34px;">
+        <option value="">All Statuses</option>
+        <option value="CONFIRMED">Confirmed Only</option>
+        <option value="PENDING">Pending Only</option>
+        <option value="CANCELLED">Cancelled / Refunded</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Calendar Main Container -->
+  <div class="calendar-grid-wrapper">
+    <!-- Calendar Navigation Toolbar -->
+    <div class="calendar-nav-bar">
+      <div class="cal-nav-controls">
+        <button type="button" class="cal-nav-btn" id="calPrevMonthBtn" title="Previous Month">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="cal-current-month" id="calMonthDisplay">
+          October 2026
+        </div>
+        <button type="button" class="cal-nav-btn" id="calNextMonthBtn" title="Next Month">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" id="calTodayBtn" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+          Today
+        </button>
+      </div>
+
+      <!-- View Tabs (Month / Week / Agenda) -->
+      <div class="cal-view-type-tabs">
+        <button type="button" class="cal-tab-btn active" data-view="month" id="viewMonthTab">
+          <i class="fa-solid fa-table-cells"></i> Month
+        </button>
+        <button type="button" class="cal-tab-btn" data-view="timeline" id="viewTimelineTab">
+          <i class="fa-solid fa-timeline"></i> Agenda / Timeline
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. MONTH VIEW -->
+    <div id="monthViewContainer">
+      <!-- Weekday Headers -->
+      <div class="calendar-day-names">
+        <div class="cal-day-header">Mon</div>
+        <div class="cal-day-header">Tue</div>
+        <div class="cal-day-header">Wed</div>
+        <div class="cal-day-header">Thu</div>
+        <div class="cal-day-header">Fri</div>
+        <div class="cal-day-header weekend">Sat</div>
+        <div class="cal-day-header weekend">Sun</div>
+      </div>
+
+      <!-- Calendar 7x5/6 Grid -->
+      <div class="calendar-days-grid" id="calDaysGrid">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+    </div>
+
+    <!-- 2. TIMELINE / AGENDA VIEW -->
+    <div id="timelineViewContainer" style="display: none;">
+      <div class="cal-timeline-wrapper" id="calTimelineList">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Interactive Event Detail Modal -->
+<div class="cal-modal-backdrop" id="calEventModal">
+  <div class="cal-modal-card">
+    <div class="cal-modal-header">
+      <h3 id="modalEventTitle">
+        <i class="fa-solid fa-ticket" style="color: var(--primary);"></i> Journey Details
+      </h3>
+      <button type="button" class="cal-modal-close" id="closeCalModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="cal-modal-body" id="modalEventBody">
+      <!-- Content populated dynamically -->
+    </div>
+    <div class="cal-modal-footer" id="modalEventFooter">
+      <button type="button" class="btn btn-outline" id="modalCloseActionBtn">Close</button>
+      <a href="#" class="btn btn-primary" id="modalActionTicketBtn">
+        <i class="fa-solid fa-ticket"></i> View Ticket / Voucher
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Embedded Initial Events JSON -->
+<script id="allEventsData" type="application/json">
+  {{ events_json|safe }}
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/calendar.js' %}?v=1.0"></script>
+{% endblock %}

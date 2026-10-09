@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Meal Checkout & Train Seat Delivery — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 3rem; margin-bottom: 5rem; max-width: 960px;">
+  <!-- Breadcrumb -->
+  <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+    <a href="{% url 'food_catering:index' %}" style="color: var(--primary);">Food Delivery</a> &rarr;
+    <a href="{% url 'food_catering:menu' %}" style="color: var(--primary);">Menu</a> &rarr;
+    <strong style="color: var(--secondary);">Seat Delivery Checkout</strong>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; align-items: flex-start;">
+    <!-- Left: Passenger Coach & Delivery Form -->
+    <div class="card" style="padding: 2rem; border-top: 5px solid #FF671F;">
+      <h2 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 0.35rem;">
+        <i class="fa-solid fa-train" style="color: #FF671F;"></i> Train & Seat Delivery Details
+      </h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Our station runner will bring the freshly prepared order directly to your seat when the train arrives at the delivery station.
+      </p>
+
+      <form action="{% url 'food_catering:process_order' %}" method="POST" id="foodOrderForm">
+        {% csrf_token %}
+
+        <!-- PNR / Train Info -->
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">PNR Number (Optional)</label>
+            <input type="text" name="pnr" class="form-input" value="{{ pnr }}" placeholder="e.g. RAW-2026-8F73K2">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Train Number *</label>
+            <input type="text" name="train_number" class="form-input" value="{{ train_number|default:'22436' }}" placeholder="e.g. 22436 / 12952" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label">Train Name</label>
+          <input type="text" name="train_name" class="form-input" value="{{ train_name|default:'Vande Bharat Express' }}" placeholder="e.g. Vande Bharat Express">
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="color: #FF671F; font-weight: 700;">Coach / Compartment *</label>
+            <input type="text" name="coach" class="form-input" value="{{ coach|default:'B1' }}" placeholder="e.g. B1, S4, A1, C2" required style="font-weight: 700;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="color: #FF671F; font-weight: 700;">Seat / Berth Number *</label>
+            <input type="text" name="seat_number" class="form-input" value="{{ seat_number|default:'12' }}" placeholder="e.g. 12, 34" required style="font-weight: 700;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" style="color: #046A38; font-weight: 700;">Delivery Railway Station *</label>
+          <select name="delivery_station" class="form-select" required>
+            {% for stn in stations %}
+              <option value="{{ stn.id }}" {% if forloop.first %}selected{% endif %}>{{ stn.name }} ({{ stn.code }}) - {{ stn.city }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin: 1.5rem 0 0.75rem 0; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+          Passenger Contact
+        </h3>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Passenger Name *</label>
+            <input type="text" name="passenger_name" class="form-input" value="{{ passenger_name|default:'Rohan Sharma' }}" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Contact Mobile Number *</label>
+            <input type="tel" name="passenger_phone" class="form-input" value="{{ passenger_phone|default:'+91 9811223344' }}" placeholder="+91 9876543210" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Special Cooking Instructions (Optional)</label>
+          <input type="text" name="special_instructions" class="form-input" placeholder="e.g. Less spicy, extra paper napkins, warm water">
+        </div>
+
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin: 1.5rem 0 0.75rem 0; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+          Payment Method
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.75rem;">
+          <label style="border: 2px solid #FF671F; background: #FFF7ED; border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <input type="radio" name="payment_method" value="UPI" checked>
+              <strong>UPI / QR Code Simulator</strong>
+            </div>
+            <span class="badge badge-success">Instant</span>
+          </label>
+
+          <label style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <input type="radio" name="payment_method" value="CARD">
+              <strong>Credit / Debit Card</strong>
+            </div>
+            <i class="fa-brands fa-cc-visa" style="font-size: 1.4rem; color: #000080;"></i>
+          </label>
+
+          <label style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <input type="radio" name="payment_method" value="COD">
+              <strong>Pay on Delivery (Cash / UPI to Runner at Berth)</strong>
+            </div>
+            <span class="badge" style="background: #ECFDF5; color: #046A38;">Recommended</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; height: 50px; background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%); font-weight: 800; font-size: 1.05rem;">
+          <i class="fa-solid fa-check-circle"></i> Confirm Meal Order (₹{{ grand_total }})
+        </button>
+      </form>
+    </div>
+
+    <!-- Right: Order Summary Sidebar -->
+    <div class="card" style="padding: 1.75rem; border-top: 5px solid #046A38;">
+      <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+        Order Items Summary
+      </h3>
+
+      <div style="margin-bottom: 1.25rem;">
+        {% for ci in cart_items %}
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.6rem;">
+          <div>
+            {% if ci.item.is_veg %}
+              <i class="fa-solid fa-circle" style="color: #10B981; font-size: 0.5rem;"></i>
+            {% else %}
+              <i class="fa-solid fa-circle" style="color: #EF4444; font-size: 0.5rem;"></i>
+            {% endif %}
+            <strong>{{ ci.item.name }}</strong> &times; {{ ci.quantity }}
+          </div>
+          <div>₹{{ ci.subtotal }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.4rem;">
+          <span>Item Total:</span>
+          <span>₹{{ base_total }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+          <span>GST & FSSAI Packaging (5%):</span>
+          <span>₹{{ gst }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #046A38; margin-bottom: 0.4rem;">
+          <span>Delivery Runner Fee:</span>
+          <span>{% if delivery_fee > 0 %}₹{{ delivery_fee }}{% else %}FREE{% endif %}</span>
+        </div>
+      </div>
+
+      <div style="border-top: 2px solid var(--border); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 1.1rem; font-weight: 800; color: var(--secondary);">Total Payable:</span>
+        <span style="font-size: 1.5rem; font-weight: 900; color: #FF671F;">₹{{ grand_total }}</span>
+      </div>
+
+      <div style="margin-top: 1.5rem; background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+        <i class="fa-solid fa-shield-halved" style="color: #046A38;"></i>
+        <strong>Guarantee:</strong> If the train is delayed or cancelled, 100% refund is processed automatically with zero deduction.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

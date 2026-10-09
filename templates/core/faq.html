@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Frequently Asked Questions (FAQs) — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 4rem 1.5rem 6rem 1.5rem;">
+  <div class="card" style="padding: 3rem;">
+    <span class="badge badge-primary" style="margin-bottom: 0.5rem;">KNOWLEDGE BASE</span>
+    <h1 style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 2rem;">Frequently Asked Questions</h1>
+
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md);">
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> How do I download or print my confirmed E-Ticket?
+        </h3>
+        <p style="font-size: 0.95rem; color: var(--secondary-muted); line-height: 1.6;">
+          After completing your demo payment, you will immediately be redirected to your ticket page. You can also view and print all tickets at any time from your <strong>Dashboard &gt; My Bookings</strong>.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md);">
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> What is the cancellation and refund policy?
+        </h3>
+        <p style="font-size: 0.95rem; color: var(--secondary-muted); line-height: 1.6;">
+          Cancellations are accepted up to 4 hours prior to scheduled departure. Refunds are calculated automatically (up to 90% refund for cancellations &gt;24 hours ahead). Cancelled seats are immediately released back to available inventory.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md);">
+        <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Is real payment information required?
+        </h3>
+        <p style="font-size: 0.95rem; color: var(--secondary-muted); line-height: 1.6;">
+          No. This system features a simulated payment sandbox. You can use prefilled demo credentials or test cards without entering any real banking details.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

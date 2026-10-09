@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book {{ room.room_type }} — {{ hotel.name }} — RailAway{% endblock %}
+
+{% block extra_css %}
+<style>
+  .booking-flow-steps {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .flow-step.active {
+    color: var(--primary);
+  }
+  .flow-step.completed {
+    color: #046A38;
+  }
+  .flow-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+  }
+  .flow-step.active .flow-step-num {
+    background: var(--primary);
+    color: #fff;
+  }
+  .flow-step.completed .flow-step-num {
+    background: #046A38;
+    color: #fff;
+  }
+  .booking-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  @media (max-width: 992px) {
+    .booking-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.5rem 5rem 1.5rem;">
+
+  <!-- Step Progress Indicator -->
+  <div class="booking-flow-steps">
+    <div class="flow-step completed">
+      <span class="flow-step-num"><i class="fa-solid fa-check"></i></span>
+      <span>1. Search</span>
+    </div>
+    <div class="flow-step completed">
+      <span class="flow-step-num"><i class="fa-solid fa-check"></i></span>
+      <span>2. Select Room</span>
+    </div>
+    <div class="flow-step active">
+      <span class="flow-step-num">3</span>
+      <span>3. Guest Details</span>
+    </div>
+    <div class="flow-step">
+      <span class="flow-step-num">4</span>
+      <span>4. Payment & Confirm</span>
+    </div>
+  </div>
+
+  <form method="POST" action="{% url 'hotels:book_room' hotel_id=hotel.id room_id=room.id %}" id="hotelBookingForm">
+    {% csrf_token %}
+
+    <div class="booking-layout">
+      <!-- Left Column: Guest Info & Stay Parameters -->
+      <div>
+        <!-- Room & Hotel Card Summary -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.75rem; border-left: 4px solid var(--primary);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <span class="badge badge-primary" style="margin-bottom: 0.35rem;">SELECTED ROOM</span>
+              <h3 style="font-size: 1.35rem; color: var(--secondary); margin-bottom: 0.25rem;">{{ room.room_type }}</h3>
+              <div style="font-size: 0.9rem; color: var(--text-muted);">
+                <strong>{{ hotel.name }}</strong> &bull; {{ hotel.city }}, {{ hotel.state }}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Rate per night:</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--secondary);">₹{{ room.price_per_night }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stay Parameters Modifier (Live Synced) -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.75rem;">
+          <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Stay Details & Dates
+          </h3>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Check-in Date</label>
+              {{ form.check_in_date }}
+              {% if form.check_in_date.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.check_in_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Check-out Date</label>
+              {{ form.check_out_date }}
+              {% if form.check_out_date.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.check_out_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">No. of Rooms</label>
+              {{ form.room_count }}
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">Max {{ room.available_rooms }} avail</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Total Guests</label>
+              {{ form.guest_count }}
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">Adults & children</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Guest Information -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.75rem;">
+          <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-user" style="color: #046A38;"></i> Primary Guest Details
+          </h3>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1.5fr 1.5fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Full Name (As on Govt. ID) *</label>
+              {{ form.primary_guest_name }}
+              {% if form.primary_guest_name.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.primary_guest_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Email Address (For Confirmation) *</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Mobile Number *</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Dynamic Container for Additional Guests -->
+          <div id="additionalGuestsContainer"></div>
+        </div>
+
+        <!-- Special Requests (Optional) -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.75rem;">
+          <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-heart" style="color: #000080;"></i> Special Requests (Optional)
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Special requests cannot be guaranteed, but the hotel will do its best to accommodate your needs.
+          </p>
+          {{ form.special_requests }}
+        </div>
+
+        <!-- Promo Code Card -->
+        <div class="card" style="padding: 1.5rem;">
+          <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-tags" style="color: #FF671F;"></i> Have a Promo Code / Coupon?
+          </h3>
+          <div style="display: flex; gap: 0.75rem; align-items: center; max-width: 480px;">
+            <input type="text" id="promoCodeInput" name="promo_code" class="form-input" placeholder="e.g. TIRANGA100" style="text-transform: uppercase;">
+            <button type="button" class="btn btn-primary" id="applyPromoBtn" style="white-space: nowrap;">
+              Apply
+            </button>
+          </div>
+          <div id="promoStatusMsg" style="margin-top: 0.5rem;"></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sticky Fare Breakdown & Checkout -->
+      <aside style="position: sticky; top: 1.5rem;">
+        <input type="hidden" id="pricePerNightHidden" value="{{ room.price_per_night }}">
+
+        <div class="card" style="padding: 1.5rem; box-shadow: var(--shadow-md);">
+          <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
+            Price Summary
+          </h3>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Duration:</span>
+              <strong id="nightsCountDisplay">{{ nights }} Night{% if nights > 1 %}s{% endif %}</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Base Room Fare:</span>
+              <strong id="baseFareDisplay">₹{{ base_fare }}</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Hotel GST & Taxes (12%):</span>
+              <span id="taxesDisplay" style="color: var(--secondary);">₹{{ taxes }}</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Platform Convenience Fee:</span>
+              <span id="serviceFeeDisplay" style="color: var(--secondary);">₹{{ service_fee }}</span>
+            </div>
+
+            <div id="discountRow" style="display: none; justify-content: space-between; color: #046A38; font-weight: 700;">
+              <span>Promo Coupon Discount:</span>
+              <span id="discountDisplay">-₹0.00</span>
+            </div>
+          </div>
+
+          <div style="border-top: 2px solid var(--border); padding-top: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">TOTAL PAYABLE</span>
+              <div style="font-size: 0.75rem; color: #046A38;">Includes all taxes & fees</div>
+            </div>
+            <div id="finalTotalDisplay" style="font-size: 1.85rem; font-weight: 800; color: var(--secondary); line-height: 1;">
+              ₹{{ total_est }}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; font-weight: 800;" id="proceedToPayBtn">
+            Proceed to Payment &rarr;
+          </button>
+
+          <!-- Free Cancellation Notice -->
+          <div style="margin-top: 1.25rem; background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.78rem; color: var(--secondary-muted); line-height: 1.4;">
+            <strong style="color: #046A38;"><i class="fa-solid fa-circle-check"></i> Free Cancellation:</strong>
+            Cancel before 24 hours of check-in for a full base refund.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/hotel_booking.js' %}"></script>
+{% endblock %}

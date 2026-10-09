@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancel Hotel Reservation — {{ booking.booking_reference }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 680px; padding: 3.5rem 1.5rem 6rem 1.5rem;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'hotels:confirmation' booking_ref=booking.booking_reference %}" class="btn btn-sm btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Back to Hotel Voucher
+    </a>
+  </div>
+
+  <div class="card" style="padding: 2.5rem; border-top: 5px solid var(--danger);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--danger-light); color: var(--danger); font-size: 1.6rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 style="font-size: 1.75rem; color: var(--secondary);">
+        {% if booking.booking_status == 'PENDING' %}Cancel Pending Hotel Booking{% else %}Cancel Hotel Reservation{% endif %}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Review cancellation refund policy and release room inventory for <strong>{{ booking.booking_reference }}</strong>
+      </p>
+    </div>
+
+    <!-- Booking Summary Mini Card -->
+    <div style="background: var(--bg-subtle); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem;">
+      <div style="font-weight: 700; color: var(--secondary); font-size: 1.05rem; margin-bottom: 0.2rem;">
+        {{ booking.hotel.name }}
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        {{ booking.room.room_type }} &bull; {{ booking.check_in_date|date:"d M Y" }} &ndash; {{ booking.check_out_date|date:"d M Y" }} ({{ booking.nights }} Night{% if booking.nights > 1 %}s{% endif %})
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+        <span><strong>Guests:</strong> {{ booking.primary_guest_name }} ({{ booking.guest_count }} Pax)</span>
+        <span>
+          {% if booking.booking_status == 'PENDING' %}
+            <strong style="color: var(--warning);">Pending:</strong> ₹{{ booking.total_amount }}
+          {% else %}
+            <strong>Total Paid:</strong> ₹{{ booking.total_amount }}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    {% if can_cancel %}
+      {% if booking.booking_status == 'CONFIRMED' %}
+        <!-- Refund Estimation Box -->
+        <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h4 style="color: #065f46; font-size: 1.05rem; margin-bottom: 0.2rem;">
+                <i class="fa-solid fa-money-bill-transfer"></i> Estimated Refund Amount
+              </h4>
+              <span style="font-size: 0.8rem; color: #047857;">Refund will be credited back to your original payment mode</span>
+            </div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #065f46;">
+              ₹{{ estimated_refund }}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <!-- Pending Notice Box -->
+        <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid fa-info-circle" style="color: var(--primary); font-size: 1.4rem;"></i>
+            <div style="font-size: 0.9rem; color: #1e3a8a;">
+              This reservation is currently pending. Cancelling will release the room immediately with no charges.
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="POST" id="hotelCancelConfirmationForm">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label">Reason for Cancellation (Optional)</label>
+          <select name="cancellation_reason" class="form-select" style="margin-bottom: 0.75rem;">
+            <option value="Change of travel dates">Change of travel dates</option>
+            <option value="Found alternate accommodation">Found alternate accommodation</option>
+            <option value="Personal / Medical reasons">Personal / Medical reasons</option>
+            <option value="Trip cancelled">Trip cancelled</option>
+            <option value="Other">Other Reason</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+          <a href="{% url 'hotels:confirmation' booking_ref=booking.booking_reference %}" class="btn btn-outline">
+            Keep My Booking
+          </a>
+          <button type="submit" class="btn btn-danger" id="confirmHotelCancelBtn">
+            <i class="fa-solid fa-ban"></i> Confirm Cancellation & Release Rooms
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: var(--radius-md); padding: 1.5rem; text-align: center; color: #991b1b; margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+        <h4 style="font-size: 1.1rem; margin-bottom: 0.35rem;">This Booking is Not Eligible for Cancellation</h4>
+        <p style="font-size: 0.9rem; margin-bottom: 0;">{{ reason_msg }}</p>
+      </div>
+      <div style="text-align: center;">
+        <a href="{% url 'hotels:confirmation' booking_ref=booking.booking_reference %}" class="btn btn-outline">
+          Return to Booking Voucher
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

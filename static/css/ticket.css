@@ -1,0 +1,211 @@
+/* ==========================================================================
+   E-Ticket & Boarding Pass Stylesheet
+   Includes Print-Optimized Styles
+   ========================================================================== */
+
+.ticket-container {
+  max-width: 860px;
+  margin: 3rem auto;
+}
+
+.ticket-card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.ticket-top-bar {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: #ffffff;
+  padding: 1.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket-pnr-badge {
+  text-align: right;
+}
+
+.ticket-pnr-badge .pnr-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.ticket-pnr-badge .pnr-value {
+  font-family: monospace;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--accent-sky);
+}
+
+.ticket-body {
+  padding: 2.25rem 2rem;
+}
+
+.ticket-journey-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  align-items: center;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.journey-node {
+  text-align: left;
+}
+
+.journey-node.destination {
+  text-align: right;
+}
+
+.journey-node .city-code {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--secondary);
+}
+
+.journey-node .station-name {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.journey-node .journey-time {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 0.25rem;
+}
+
+.journey-center-meta {
+  text-align: center;
+}
+
+.journey-date-badge {
+  display: inline-block;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 0.4rem;
+}
+
+/* Passenger Table */
+.passenger-table-container {
+  margin-bottom: 2rem;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  background: var(--bg-subtle);
+  padding: 0.85rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--secondary-muted);
+  border-bottom: 1.5px solid var(--border);
+}
+
+.custom-table td {
+  padding: 1rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--secondary);
+}
+
+/* Ticket Footer & QR Barcode */
+.ticket-footer-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px dashed var(--border);
+  padding-top: 1.75rem;
+  margin-top: 1rem;
+}
+
+.qr-code-box {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.simulated-qr {
+  width: 90px;
+  height: 90px;
+  background: #ffffff;
+  border: 2px solid var(--secondary);
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.qr-dot {
+  background: var(--secondary);
+  border-radius: 1px;
+}
+.qr-dot.white { background: #ffffff; }
+
+.barcode-strip {
+  height: 40px;
+  width: 180px;
+  background: repeating-linear-gradient(
+    90deg,
+    #0f172a,
+    #0f172a 2px,
+    #ffffff 2px,
+    #ffffff 4px,
+    #0f172a 4px,
+    #0f172a 7px,
+    #ffffff 7px,
+    #ffffff 9px
+  );
+  margin-bottom: 0.3rem;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .site-navbar, .site-footer, .no-print, .btn-print, .nav-actions {
+    display: none !important;
+  }
+  
+  .ticket-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .ticket-card {
+    box-shadow: none !important;
+    border: 2px solid #000000 !important;
+  }
+  
+  .ticket-top-bar {
+    background: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

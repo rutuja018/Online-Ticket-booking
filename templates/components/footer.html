@@ -1,0 +1,83 @@
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <!-- Brand column -->
+      <div class="footer-brand">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+          <div class="brand-icon" style="width: 34px; height: 34px; font-size: 0.95rem;">
+            <i class="fa-solid fa-train-subway"></i>
+          </div>
+          <h3 style="margin-bottom: 0;">RailAway</h3>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
+          The all-in-one multi-modal ticket reservation platform for seamless train, flight, and luxury bus journeys across the nation.
+        </p>
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="#" style="color: #94a3b8; font-size: 1.2rem;" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" style="color: #94a3b8; font-size: 1.2rem;" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" style="color: #94a3b8; font-size: 1.2rem;" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" style="color: #94a3b8; font-size: 1.2rem;" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+      </div>
+
+      <!-- Quick Booking Links -->
+      <div class="footer-col">
+        <h4>Book Transport</h4>
+        <ul class="footer-links">
+          <li><a href="{% url 'railways:search' %}"><i class="fa-solid fa-train"></i> Train Tickets</a></li>
+          <li><a href="{% url 'airlines:search' %}"><i class="fa-solid fa-plane"></i> Flight Tickets</a></li>
+          <li><a href="{% url 'buses:search' %}"><i class="fa-solid fa-bus"></i> Bus Tickets</a></li>
+          <li><a href="{% url 'bookings:history' %}"><i class="fa-solid fa-receipt"></i> Check PNR Status</a></li>
+        </ul>
+      </div>
+
+      <!-- Company & Support -->
+      <div class="footer-col">
+        <h4>Company & Support</h4>
+        <ul class="footer-links">
+          <li><a href="{% url 'core:about' %}">About RailAway</a></li>
+          <li><a href="{% url 'core:cancellation_policy' %}"><i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> Cancellation & Refund Policy</a></li>
+          <li><a href="{% url 'core:faq' %}">Help & FAQs</a></li>
+          <li><a href="{% url 'core:contact' %}">24x7 Customer Support</a></li>
+          <li><a href="{% url 'core:terms' %}">Terms & Conditions</a></li>
+        </ul>
+      </div>
+
+      <!-- Security / Certified -->
+      <div class="footer-col">
+        <h4>Trust & Security</h4>
+        <p style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">
+          <i class="fa-solid fa-shield-halved" style="color: #10B981; margin-right: 0.3rem;"></i> 256-Bit SSL Encrypted simulated checkout & instant PNR generation.
+        </p>
+        <div style="background: rgba(255,255,255,0.06); padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem; border-left: 3px solid #FF671F;">
+          <i class="fa-solid fa-headset" style="color: #FF9933;"></i> Support Helpline:<br>
+          <strong style="color: #ffffff; font-size: 0.95rem;">+91 1800-RAILAWAY</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom copyright and i18n Selectors -->
+    <div class="footer-bottom" style="flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+      <div>
+        &copy; {{ CURRENT_YEAR }} RailAway Technologies Inc. All rights reserved.
+      </div>
+      
+      <!-- Footer Quick Language & Currency Selectors -->
+      <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Preferences:</span>
+        <button type="button" class="i18n-footer-pill" onclick="document.getElementById('navbarLanguageDropdown').click()" title="Select Language">
+          <i class="fa-solid fa-globe" style="color: #FF9933;"></i>
+          <span class="current-lang-display">🇬🇧 English</span>
+        </button>
+        <button type="button" class="i18n-footer-pill" onclick="document.getElementById('navbarCurrencyDropdown').click()" title="Change Currency">
+          <i class="fa-solid fa-coins" style="color: #F59E0B;"></i>
+          <span class="current-currency-display">🇮🇳 INR (₹)</span>
+        </button>
+      </div>
+
+      <div>
+        Built with Python, Django, SQLite, CSS3 & JavaScript
+      </div>
+    </div>
+  </div>
+</footer>

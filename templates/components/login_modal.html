@@ -1,0 +1,165 @@
+{% load static %}
+<!-- Unified Login Modal -->
+<div class="irctc-modal-backdrop" id="irctcLoginModal" aria-hidden="true">
+  <div class="irctc-modal-dialog">
+    <div class="irctc-card">
+      
+      <!-- Prominent Yellow Circular Close Button -->
+      <button type="button" class="irctc-close-btn" id="irctcModalCloseBtn" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Pill Toggle Selector -->
+      <div class="irctc-tab-switch-container">
+        <div class="irctc-tab-switch" role="tablist">
+          <button type="button" class="irctc-tab-pill active" id="pillIrctcTab" data-target="irctcLoginFormPanel" role="tab" aria-selected="true">
+            RailAway Login
+          </button>
+          <button type="button" class="irctc-tab-pill" id="pillGuestTab" data-target="irctcGuestFormPanel" role="tab" aria-selected="false">
+            Guest User Login
+          </button>
+        </div>
+      </div>
+
+      <!-- Alerts inside Modal -->
+      <div class="irctc-modal-alert" id="irctcModalAlert" style="display: none;"></div>
+
+      <!-- TAB 1: RailAway / Registered User Login -->
+      <div class="irctc-tab-panel active" id="irctcLoginFormPanel" role="tabpanel">
+        <form method="POST" action="{% url 'accounts:login' %}" id="irctcModalLoginForm">
+          {% csrf_token %}
+          <input type="hidden" name="next" id="irctcLoginNextInput" value="{{ request.get_full_path }}">
+
+          <!-- User Name Field -->
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="irctcModalUsername">User Name</label>
+            <div class="irctc-input-wrap">
+              <input type="text" name="username" id="irctcModalUsername" class="irctc-input" placeholder="Enter Your User Name" required autofocus autocomplete="username">
+              <i class="fa-solid fa-user irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="irctcModalPassword">Password</label>
+            <div class="irctc-input-wrap">
+              <input type="password" name="password" id="irctcModalPassword" class="irctc-input" placeholder="Enter Your Password" required autocomplete="current-password">
+              <i class="fa-solid fa-key irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <!-- Centered Golden Pill Action Button -->
+          <div class="irctc-btn-wrap">
+            <button type="submit" class="irctc-btn-pill" id="irctcLoginSubmitBtn">
+              Login
+            </button>
+          </div>
+        </form>
+
+        <!-- Demo Account Quick Select Box -->
+        <div class="irctc-demo-box">
+          <div class="irctc-demo-header">
+            <i class="fa-solid fa-bolt" style="color: #F59E0B;"></i> <span>Quick Demo Sign In:</span>
+          </div>
+          <div class="irctc-demo-buttons">
+            <button type="button" class="irctc-demo-chip" onclick="window.autofillModalLogin('customer', 'password123')">
+              <i class="fa-solid fa-user"></i> Customer (Demo)
+            </button>
+            <button type="button" class="irctc-demo-chip" onclick="window.autofillModalLogin('admin', 'admin123')">
+              <i class="fa-solid fa-shield-halved"></i> Admin
+            </button>
+          </div>
+        </div>
+
+        <!-- Divider Line -->
+        <div class="irctc-divider"></div>
+
+        <!-- Footer Links -->
+        <div class="irctc-card-footer">
+          Not a member? <a href="{% url 'accounts:register' %}" class="irctc-link">Sign Up</a>
+          <span class="irctc-footer-sep"></span>
+          <a href="{% url 'accounts:forgot_password' %}" class="irctc-link">Forgot Password?</a>
+        </div>
+      </div>
+
+      <!-- TAB 2: Email OTP Login & Verification -->
+      <div class="irctc-tab-panel" id="irctcGuestFormPanel" role="tabpanel" style="display: none;">
+        
+        <!-- Status Alert Box for Success/Error/Expiry -->
+        <div class="irctc-status-alert" id="modalOtpStatus"></div>
+
+        <!-- Hidden input for Next URL -->
+        <input type="hidden" id="modalOtpNext" value="{{ request.get_full_path }}">
+
+        <!-- STEP 1: Enter Email & Request OTP -->
+        <div id="modalEmailSection">
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="modalOtpEmail">Email Address</label>
+            <div class="irctc-input-wrap">
+              <input type="email" id="modalOtpEmail" class="irctc-input" placeholder="Enter Your Email Address (e.g. name@example.com)" required autocomplete="email">
+              <i class="fa-solid fa-envelope irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" class="irctc-btn-pill" id="modalSendOtpBtn" onclick="window.sendAuthOtp('modal')">
+              Send OTP
+            </button>
+          </div>
+
+          <div class="irctc-guest-hint">
+            <i class="fa-solid fa-shield-halved" style="color: #046A38;"></i>
+            A 6-digit verification code will be sent to your email. Valid for 2 minutes.
+          </div>
+        </div>
+
+        <!-- STEP 2: Enter & Verify 6-Digit OTP (Shown after OTP is sent) -->
+        <div id="modalOtpInputSection" style="display: none;">
+          <div class="irctc-form-group">
+            <label class="irctc-label" for="modalOtpCode">Enter 6-Digit OTP</label>
+            <div class="irctc-input-wrap">
+              <input type="text" id="modalOtpCode" class="irctc-input irctc-otp-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+              <i class="fa-solid fa-key irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" class="irctc-btn-pill" id="modalVerifyOtpBtn" onclick="window.verifyAuthOtp('modal')">
+              Verify &amp; Login
+            </button>
+          </div>
+
+          <!-- 2-Minute Countdown Timer Display -->
+          <div class="irctc-otp-timer" id="modalOtpTimer">
+            <i class="fa-regular fa-clock"></i> OTP valid for: <strong id="modalOtpTimerCount">02:00</strong>
+          </div>
+
+          <!-- Resend OTP Action & Cooldown -->
+          <div class="irctc-otp-resend-wrap">
+            Didn't receive code? 
+            <button type="button" class="irctc-link-btn" id="modalResendOtpBtn" onclick="window.sendAuthOtp('modal')" disabled>
+              Resend OTP
+            </button>
+            <span id="modalCooldownText" style="font-size: 0.8rem; color: #94A3B8;"></span>
+          </div>
+
+          <!-- Change Email Option -->
+          <div style="text-align: center; margin-top: 0.6rem;">
+            <a href="javascript:void(0)" onclick="window.resetOtpSection('modal')" class="irctc-link" style="color: #64748B; font-size: 0.82rem;">
+              <i class="fa-solid fa-pen-to-square"></i> Change email address
+            </a>
+          </div>
+        </div>
+
+        <!-- Divider Line -->
+        <div class="irctc-divider"></div>
+
+        <!-- Footer Links -->
+        <div class="irctc-card-footer">
+          Prefer password login? <a href="javascript:void(0)" class="irctc-link" onclick="window.switchIrctcTab('irctcLoginFormPanel')">RailAway Login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

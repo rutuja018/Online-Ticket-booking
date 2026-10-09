@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ schedule.flight.airline.name }} ({{ schedule.flight.flight_number }} ) — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 3rem 1.5rem 5rem 1.5rem;">
+  <a href="{% url 'airlines:search' %}" class="btn btn-sm btn-outline mb-3" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Flight Search
+  </a>
+
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+      <div>
+        <span class="badge badge-flight"><i class="fa-solid fa-plane"></i> {{ schedule.flight.flight_number }}</span>
+        <h1 style="font-size: 1.8rem; margin: 0.4rem 0;">{{ schedule.flight.airline.name }}</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Aircraft: {{ schedule.flight.aircraft.model_name }} &bull; Capacity: {{ schedule.flight.aircraft.total_capacity }} Seats
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge badge-success">On-Time Scheduled</span>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">
+          {{ schedule.departure_datetime|date:"d M Y" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div class="journey-timeline">
+        <div class="time-box" style="text-align: left;">
+          <div class="time">{{ schedule.departure_datetime|date:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.origin_airport.name }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ schedule.origin_airport.city }} ({{ schedule.origin_airport.code }}) &bull; {{ schedule.origin_airport.terminal }}</div>
+        </div>
+
+        <div class="timeline-track">
+          <span class="duration-tag"><i class="fa-regular fa-clock"></i> {{ schedule.formatted_duration }}</span>
+          <div class="track-line" style="background: #93c5fd;"></div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">Non-stop Direct</span>
+        </div>
+
+        <div class="time-box" style="text-align: right;">
+          <div class="time">{{ schedule.arrival_datetime|date:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.destination_airport.name }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ schedule.destination_airport.city }} ({{ schedule.destination_airport.code }}) &bull; {{ schedule.destination_airport.terminal }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Baggage & Amenities Advisory -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 1rem; border-radius: var(--radius-md);">
+        <strong style="color: #0369a1; font-size: 0.9rem;"><i class="fa-solid fa-suitcase-rolling"></i> Baggage Allowance:</strong>
+        <p style="font-size: 0.85rem; color: var(--secondary-muted); margin-top: 0.2rem;">{{ schedule.baggage_allowance }}</p>
+      </div>
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1rem; border-radius: var(--radius-md);">
+        <strong style="color: #15803d; font-size: 0.9rem;"><i class="fa-solid fa-utensils"></i> In-Flight Dining:</strong>
+        <p style="font-size: 0.85rem; color: var(--secondary-muted); margin-top: 0.2rem;">Complimentary Meal & Beverages Included</p>
+      </div>
+    </div>
+
+    <!-- Cabin Classes and Fares -->
+    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--secondary);">Available Cabin Classes</h3>
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Cabin Class</th>
+          <th>Seat Type</th>
+          <th>Fare</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Economy Class</strong></td>
+          <td>Standard 3-3 Seating</td>
+          <td><strong>₹{{ schedule.fare_economy }}</strong></td>
+          <td>
+            <a href="{% url 'airlines:seat_select' schedule_id=schedule.id %}?class=ECONOMY" class="btn btn-sm btn-primary">Select Seats</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Premium Economy</strong></td>
+          <td>Extra Legroom + Priority Check-in</td>
+          <td><strong>₹{{ schedule.fare_premium_economy }}</strong></td>
+          <td>
+            <a href="{% url 'airlines:seat_select' schedule_id=schedule.id %}?class=PREMIUM_ECONOMY" class="btn btn-sm btn-primary">Select Seats</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Business Class</strong></td>
+          <td>Recliner Lie-Flat + Lounge Access</td>
+          <td><strong>₹{{ schedule.fare_business }}</strong></td>
+          <td>
+            <a href="{% url 'airlines:seat_select' schedule_id=schedule.id %}?class=BUSINESS" class="btn btn-sm btn-primary">Select Seats</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>First Class Suite</strong></td>
+          <td>Private Suite + Gourmet Dining</td>
+          <td><strong>₹{{ schedule.fare_first_class }}</strong></td>
+          <td>
+            <a href="{% url 'airlines:seat_select' schedule_id=schedule.id %}?class=FIRST_CLASS" class="btn btn-sm btn-primary">Select Seats</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

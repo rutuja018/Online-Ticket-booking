@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hotels in {{ city|default:"India" }} — Best Rates & Luxury Stays — RailAway{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hotel-search-bar {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+  }
+  .hotels-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .filter-sidebar {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 1.5rem;
+  }
+  .filter-group {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .filter-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .filter-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .filter-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--secondary-muted);
+    cursor: pointer;
+    margin-bottom: 0.45rem;
+    transition: color var(--transition-fast);
+  }
+  .filter-checkbox-label:hover {
+    color: var(--secondary);
+  }
+  .hotel-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    grid-template-columns: 300px 1fr 220px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+  }
+  .hotel-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  .hotel-card-img-wrap {
+    position: relative;
+    height: 100%;
+    min-height: 220px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .hotel-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .hotel-card:hover .hotel-card-img {
+    transform: scale(1.05);
+  }
+  .hotel-card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hotel-card-pricing {
+    padding: 1.5rem;
+    background: #fafafa;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .sort-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .sort-btns {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .sort-btn {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--secondary-muted);
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+  }
+  .sort-btn:hover {
+    background: var(--bg-subtle);
+    color: var(--secondary);
+  }
+  .sort-btn.active {
+    background: var(--secondary);
+    color: #fff;
+    border-color: var(--secondary);
+  }
+  @media (max-width: 992px) {
+    .hotels-layout {
+      grid-template-columns: 1fr;
+    }
+    .hotel-card {
+      grid-template-columns: 1fr;
+    }
+    .hotel-card-img-wrap {
+      height: 220px;
+    }
+    .hotel-card-pricing {
+      border-left: none;
+      border-top: 1px solid var(--border);
+      flex-direction: row;
+      align-items: center;
+      text-align: left;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+
+  <!-- Search Bar -->
+  <div class="hotel-search-bar">
+    <form method="GET" action="{% url 'hotels:search' %}" id="hotelSearchForm">
+      <div class="form-row" style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 1.2fr; gap: 1rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-city" style="color: #FF671F;"></i> Destination / City</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-location-dot"></i>
+            <input type="text" name="city" class="form-input" placeholder="e.g. New Delhi, Mumbai, Jaipur..." value="{{ city }}" list="cityOptions">
+            <datalist id="cityOptions">
+              {% for c in all_cities %}
+                <option value="{{ c }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-calendar-day" style="color: #046A38;"></i> Check-in</label>
+          <input type="date" name="check_in" id="searchCheckIn" class="form-input" value="{{ check_in }}" min="{{ today }}" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-calendar-check" style="color: #000080;"></i> Check-out</label>
+          <input type="date" name="check_out" id="searchCheckOut" class="form-input" value="{{ check_out }}" min="{{ check_in }}" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-door-closed" style="color: #FF671F;"></i> Rooms</label>
+          <select name="rooms" class="form-select">
+            <option value="1" {% if rooms == 1 %}selected{% endif %}>1 Room</option>
+            <option value="2" {% if rooms == 2 %}selected{% endif %}>2 Rooms</option>
+            <option value="3" {% if rooms == 3 %}selected{% endif %}>3 Rooms</option>
+            <option value="4" {% if rooms == 4 %}selected{% endif %}>4+ Rooms</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label"><i class="fa-solid fa-users" style="color: #046A38;"></i> Guests</label>
+          <select name="guests" class="form-select">
+            <option value="1" {% if guests == 1 %}selected{% endif %}>1 Guest</option>
+            <option value="2" {% if guests == 2 %}selected{% endif %}>2 Guests</option>
+            <option value="3" {% if guests == 3 %}selected{% endif %}>3 Guests</option>
+            <option value="4" {% if guests == 4 %}selected{% endif %}>4 Guests</option>
+            <option value="6" {% if guests >= 5 %}selected{% endif %}>5+ Guests</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px;" id="hotelSearchUpdateBtn">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Layout: Filters Sidebar + Results List -->
+  <div class="hotels-layout">
+    <!-- Filter Sidebar -->
+    <aside class="filter-sidebar">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--bg-subtle);">
+        <h3 style="font-size: 1.1rem; color: var(--secondary); margin: 0;"><i class="fa-solid fa-sliders"></i> Filters</h3>
+        <a href="{% url 'hotels:search' %}?check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}{% if city %}&city={{ city }}{% endif %}" style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Reset All</a>
+      </div>
+
+      <form method="GET" action="{% url 'hotels:search' %}" id="hotelFilterForm">
+        <!-- Hidden Carry-over params -->
+        <input type="hidden" name="city" value="{{ city }}">
+        <input type="hidden" name="check_in" value="{{ check_in }}">
+        <input type="hidden" name="check_out" value="{{ check_out }}">
+        <input type="hidden" name="rooms" value="{{ rooms }}">
+        <input type="hidden" name="guests" value="{{ guests }}">
+        <input type="hidden" name="sort" value="{{ selected_sort }}">
+
+        <!-- 1. Star Rating Filter -->
+        <div class="filter-group">
+          <div class="filter-title">Star Rating</div>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="stars" value="5" {% if '5' in selected_stars %}checked{% endif %} onchange="this.form.submit()">
+            <span style="color: #F59E0B;">★★★★★</span> 5 Star Luxury
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="stars" value="4" {% if '4' in selected_stars %}checked{% endif %} onchange="this.form.submit()">
+            <span style="color: #F59E0B;">★★★★</span> 4 Star Premium
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="stars" value="3" {% if '3' in selected_stars %}checked{% endif %} onchange="this.form.submit()">
+            <span style="color: #F59E0B;">★★★</span> 3 Star Comfort
+          </label>
+        </div>
+
+        <!-- 2. Guest Rating -->
+        <div class="filter-group">
+          <div class="filter-title">Guest Rating</div>
+          <label class="filter-checkbox-label">
+            <input type="radio" name="min_rating" value="4.5" {% if min_rating == '4.5' %}checked{% endif %} onchange="this.form.submit()">
+            <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">4.5+</span> Exceptional (4.5+)
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="radio" name="min_rating" value="4.0" {% if min_rating == '4.0' %}checked{% endif %} onchange="this.form.submit()">
+            <span class="badge badge-primary" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">4.0+</span> Very Good (4.0+)
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="radio" name="min_rating" value="3.5" {% if min_rating == '3.5' %}checked{% endif %} onchange="this.form.submit()">
+            <span class="badge badge-warning" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">3.5+</span> Good (3.5+)
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="radio" name="min_rating" value="" {% if not min_rating %}checked{% endif %} onchange="this.form.submit()">
+            All Ratings
+          </label>
+        </div>
+
+        <!-- 3. Property Type -->
+        <div class="filter-group">
+          <div class="filter-title">Property Type</div>
+          {% for type_code, type_name in hotel_types %}
+            <label class="filter-checkbox-label">
+              <input type="checkbox" name="hotel_type" value="{{ type_code }}" {% if type_code in selected_hotel_types %}checked{% endif %} onchange="this.form.submit()">
+              {{ type_name }}
+            </label>
+          {% endfor %}
+        </div>
+
+        <!-- 4. Amenities -->
+        <div class="filter-group">
+          <div class="filter-title">Popular Amenities</div>
+          {% for am in all_amenities %}
+            <label class="filter-checkbox-label">
+              <input type="checkbox" name="amenities" value="{{ am.id }}" {% if am.id in selected_amenities %}checked{% endif %} onchange="this.form.submit()">
+              <i class="{{ am.icon_class }}" style="font-size: 0.8rem; width: 16px; color: var(--primary);"></i> {{ am.name }}
+            </label>
+          {% endfor %}
+        </div>
+
+        <!-- 5. Inclusions -->
+        <div class="filter-group">
+          <div class="filter-title">Room Inclusions</div>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="free_breakfast" value="1" {% if request.GET.free_breakfast == '1' %}checked{% endif %} onchange="this.form.submit()">
+            <i class="fa-solid fa-utensils" style="color: #046A38;"></i> Free Breakfast Included
+          </label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="free_cancellation" value="1" {% if request.GET.free_cancellation == '1' %}checked{% endif %} onchange="this.form.submit()">
+            <i class="fa-solid fa-shield-heart" style="color: #000080;"></i> Free Cancellation
+          </label>
+        </div>
+      </form>
+    </aside>
+
+    <!-- Main Results Column -->
+    <main>
+      <!-- Results Header & Sort Strip -->
+      <div class="sort-strip">
+        <div>
+          <h2 style="font-size: 1.55rem; color: var(--secondary); margin-bottom: 0.2rem;">
+            {% if city %}Hotels in <span style="color: var(--primary);">{{ city }}</span>{% else %}Available Hotels Across India{% endif %}
+          </h2>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">
+            Showing {{ hotels_count }} verified properties &bull; {{ nights }} Night{% if nights > 1 %}s{% endif %} ({{ check_in|date:"d M" }} &ndash; {{ check_out|date:"d M Y" }})
+          </p>
+        </div>
+
+        <!-- Sort Links -->
+        <div class="sort-btns">
+          <span style="font-size: 0.82rem; font-weight: 700; color: var(--secondary-muted); align-self: center; margin-right: 0.25rem;">Sort:</span>
+          <a href="?city={{ city }}&check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}&sort=recommended" class="sort-btn {% if selected_sort == 'recommended' or not selected_sort %}active{% endif %}">Recommended</a>
+          <a href="?city={{ city }}&check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}&sort=price_low_high" class="sort-btn {% if selected_sort == 'price_low_high' %}active{% endif %}">Price: Low to High</a>
+          <a href="?city={{ city }}&check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}&sort=price_high_low" class="sort-btn {% if selected_sort == 'price_high_low' %}active{% endif %}">Price: High to Low</a>
+          <a href="?city={{ city }}&check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}&sort=rating_desc" class="sort-btn {% if selected_sort == 'rating_desc' %}active{% endif %}">Guest Rating</a>
+          <a href="?city={{ city }}&check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}&sort=stars_desc" class="sort-btn {% if selected_sort == 'stars_desc' %}active{% endif %}">Star Rating</a>
+        </div>
+      </div>
+
+      <!-- Hotel Cards List -->
+      {% if hotel_cards %}
+        {% for item in hotel_cards %}
+          {% with h=item.hotel %}
+          <div class="hotel-card">
+            <!-- Hotel Photo -->
+            <div class="hotel-card-img-wrap">
+              <img src="{{ h.main_image }}" alt="{{ h.name }}" class="hotel-card-img" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80';">
+              {% if h.is_featured %}
+                <span class="badge" style="position: absolute; top: 12px; left: 12px; background: rgba(15,23,42,0.85); color: #fff; backdrop-filter: blur(4px); font-size: 0.7rem; font-weight: 800;">
+                  <i class="fa-solid fa-crown" style="color: #F59E0B;"></i> FEATURED
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Hotel Body Info -->
+            <div class="hotel-card-body">
+              <div>
+                <!-- Stars & Category -->
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                  <span style="color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px;">
+                    {% for _ in h.star_range %}★{% endfor %}
+                  </span>
+                  <span class="badge badge-neutral" style="font-size: 0.7rem;">{{ h.get_hotel_type_display }}</span>
+                </div>
+
+                <!-- Hotel Name -->
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.35rem; color: var(--secondary);">
+                  <a href="{% url 'hotels:detail' hotel_id=h.id %}?check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}" style="color: inherit;">
+                    {{ h.name }}
+                  </a>
+                </h3>
+
+                <!-- Location & Landmark -->
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                  <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> {{ h.city }}, {{ h.state }}
+                  {% if h.landmark %}
+                    &bull; <span style="color: var(--secondary-muted);">{{ h.landmark }}</span>
+                  {% endif %}
+                </div>
+
+                <!-- Tagline or Short Description -->
+                <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  {{ h.description }}
+                </p>
+
+                <!-- Amenities Tags -->
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                  {% for am in h.amenities.all|slice:":4" %}
+                    <span class="badge" style="background: #f1f5f9; color: var(--secondary); font-size: 0.72rem; font-weight: 600; text-transform: none;">
+                      <i class="{{ am.icon_class }}" style="color: var(--primary);"></i> {{ am.name }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Cancellation Policy Badge -->
+              <div style="font-size: 0.8rem; color: #046A38; font-weight: 600; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+                <i class="fa-solid fa-circle-check"></i> Free cancellation available
+              </div>
+            </div>
+
+            <!-- Hotel Pricing & Actions -->
+            <div class="hotel-card-pricing">
+              <!-- Guest Rating Box -->
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="text-align: right;">
+                  <div style="font-size: 0.85rem; font-weight: 700; color: var(--secondary);">{{ h.rating_text }}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">{{ h.review_count }} reviews</div>
+                </div>
+                <div class="badge {{ h.rating_badge_class }}" style="font-size: 0.95rem; font-weight: 800; padding: 0.35rem 0.6rem; border-radius: var(--radius-md);">
+                  {{ h.guest_rating }}
+                </div>
+              </div>
+
+              <!-- Price Box -->
+              <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Price per night</div>
+                <div style="font-size: 1.65rem; font-weight: 800; color: var(--secondary); line-height: 1.1;">
+                  ₹{{ item.min_price }}
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  ₹{{ item.total_stay_price }} for {{ item.nights }} night{% if item.nights > 1 %}s{% endif %}
+                </div>
+                <div style="font-size: 0.72rem; color: #64748b;">+ ₹{{ item.total_with_tax|floatformat:0 }} incl. taxes & fees</div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{% url 'hotels:detail' hotel_id=h.id %}?check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}" class="btn btn-sm btn-primary" style="width: 100%; font-weight: 700;" id="hotelViewDetailsBtn_{{ h.id }}">
+                  View Details &rarr;
+                </a>
+                <a href="{% url 'hotels:detail' hotel_id=h.id %}?check_in={{ check_in }}&check_out={{ check_out }}&rooms={{ rooms }}&guests={{ guests }}#roomsSection" class="btn btn-sm btn-outline" style="width: 100%;" id="hotelBookNowBtn_{{ h.id }}">
+                  Book Room
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      {% else %}
+        <!-- Empty State -->
+        <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
+          <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--bg-subtle); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem auto;">
+            <i class="fa-solid fa-hotel"></i>
+          </div>
+          <h3 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 0.5rem;">No hotels found matching your criteria</h3>
+          <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem auto;">
+            Try loosening your filters, changing your destination, or exploring other popular tourist hubs like Delhi, Mumbai, Jaipur, Goa, or Bengaluru.
+          </p>
+          <a href="{% url 'hotels:search' %}" class="btn btn-primary">
+            <i class="fa-solid fa-rotate-left"></i> View All Available Hotels
+          </a>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Ensure check_out >= check_in + 1 day
+  const checkInInput = document.getElementById('searchCheckIn');
+  const checkOutInput = document.getElementById('searchCheckOut');
+  if (checkInInput && checkOutInput) {
+    checkInInput.addEventListener('change', () => {
+      if (checkInInput.value) {
+        const inDate = new Date(checkInInput.value);
+        inDate.setDate(inDate.getDate() + 1);
+        const nextDayStr = inDate.toISOString().split('T')[0];
+        checkOutInput.min = nextDayStr;
+        if (checkOutInput.value <= checkInInput.value) {
+          checkOutInput.value = nextDayStr;
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

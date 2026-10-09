@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 4rem 1.5rem 6rem 1.5rem;">
+  <div class="card" style="padding: 3rem;">
+    <span class="badge badge-primary" style="margin-bottom: 0.5rem;">OUR STORY & MISSION</span>
+    <h1 style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1.5rem;">About RailAway Technologies</h1>
+
+    <p style="font-size: 1.05rem; line-height: 1.7; color: var(--secondary-muted); margin-bottom: 1.5rem;">
+      RailAway is a modern, unified multi-modal ticketing ecosystem designed to simplify passenger transit across Railways, Airlines, and Intercity Buses. We eliminate the frustration of navigating separate websites by combining real-time schedules, atomic seat selection, and digital e-tickets into one unified platform.
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg);">
+        <h3 style="font-size: 1.15rem; color: var(--primary); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-bullseye"></i> Our Mission
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--secondary-muted); line-height: 1.6;">
+          To provide frictionless transit booking with transparent pricing, zero hidden costs, and instant digital ticketing.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg);">
+        <h3 style="font-size: 1.15rem; color: var(--success); margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-award"></i> Reliability
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--secondary-muted); line-height: 1.6;">
+          Built on robust ACID relational database guarantees ensuring your selected seat is guaranteed without double-booking.
+        </p>
+      </div>
+    </div>
+
+    <a href="{% url 'core:home' %}" class="btn btn-primary">Start Your Journey Today &rarr;</a>
+  </div>
+</div>
+{% endblock %}

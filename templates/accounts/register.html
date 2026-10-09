@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Account with Email OTP — RailAway{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v={% now 'U' %}">
+<style>
+  /* Extra micro-styling for registration OTP verification */
+  .irctc-btn-otp-action {
+    height: 48px;
+    padding: 0 1.35rem;
+    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+  }
+
+  .irctc-btn-otp-action:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0369A1 0%, #075985 100%);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .irctc-btn-otp-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.9;
+  }
+
+  .otp-box-wrapper {
+    background: #F8FAFC;
+    border: 1.5px dashed #94A3B8;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.25rem;
+    transition: all 0.3s ease;
+    animation: fadeInSlide 0.25s ease-out;
+  }
+
+  @keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pulse-glow {
+    animation: pulseBorder 1.8s infinite;
+  }
+
+  @keyframes pulseBorder {
+    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="irctc-auth-page-bg">
+  <div class="irctc-skyline-bg"></div>
+  <div class="irctc-auth-wrapper" style="max-width: 560px;">
+    <div class="irctc-card">
+      <a href="{% url 'core:home' %}" class="irctc-close-btn" title="Back to Home">
+        <i class="fa-solid fa-xmark"></i>
+      </a>
+
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div class="brand-icon" style="width: 48px; height: 48px; font-size: 1.25rem; margin: 0 auto 0.75rem auto;">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <h2 style="font-size: 1.65rem; font-weight: 800; color: #1E293B; font-family: var(--font-heading); margin-bottom: 0.25rem;">Create Your Account</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Fast & Secure Email OTP Verification via EmailJS</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="irctc-tab-switch-container">
+        <div class="irctc-tab-switch">
+          <button type="button" class="irctc-tab-pill active" id="tabFullRegister" onclick="switchRegisterTab('full')">
+            <i class="fa-solid fa-address-card"></i> Standard Form
+          </button>
+          <button type="button" class="irctc-tab-pill" id="tabQuickRegister" onclick="switchRegisterTab('quick')">
+            <i class="fa-solid fa-bolt"></i> 1-Click OTP Access
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: Standard Full Registration with EmailJS OTP Verification -->
+      <div id="fullRegisterSection">
+        <form method="POST" action="{% url 'accounts:register' %}" id="fullRegisterForm">
+          {% csrf_token %}
+          <input type="hidden" name="email_otp" id="hiddenEmailOtp" value="">
+          <input type="hidden" name="is_email_verified" id="isEmailVerifiedHidden" value="0">
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.first_name.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.last_name.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">Username *</label>
+              {{ form.username }}
+              {% if form.username.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.username.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">Phone Number *</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.phone.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <!-- Email Address & EmailJS OTP Verification Flow -->
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem; margin-bottom: 0;">Email Address *</label>
+              <span id="regEmailBadgeStatus" style="font-size: 0.8rem; color: #D97706; font-weight: 700; transition: all 0.2s ease;">
+                <i class="fa-solid fa-circle-exclamation"></i> Verification Required
+              </span>
+            </div>
+
+            <!-- Email Input & Action Button -->
+            <div id="regEmailSection" style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="email" name="email" id="regOtpEmail" class="form-input" placeholder="Enter your email address" value="{{ form.email.value|default:'' }}" required style="flex: 1; height: 48px; font-size: 0.96rem;">
+              <button type="button" id="regSendOtpBtn" class="irctc-btn-otp-action" onclick="window.sendAuthOtp('reg', 'registration')">
+                <i class="fa-solid fa-paper-plane"></i> Verify via OTP
+              </button>
+              <button type="button" id="regEditEmailBtn" class="irctc-link-btn" onclick="resetRegistrationEmail('reg')" style="display: none; font-size: 0.82rem; white-space: nowrap;">
+                <i class="fa-solid fa-pen-to-square"></i> Change
+              </button>
+            </div>
+            {% if form.email.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.email.errors.0 }}</span>{% endif %}
+
+            <!-- In-Line OTP Verification Container (Revealed after clicking "Verify via OTP") -->
+            <div id="regOtpInputSection" class="otp-box-wrapper" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <span style="font-size: 0.88rem; font-weight: 700; color: #1E293B;">
+                  <i class="fa-solid fa-key" style="color: #F59E0B;"></i> Enter 6-Digit Email OTP
+                </span>
+                <button type="button" class="irctc-link-btn" onclick="resetRegistrationEmail('reg')" style="font-size: 0.82rem;">
+                  Change Email
+                </button>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <input type="text" id="regOtpCode" class="form-input irctc-otp-input" placeholder="• • • • • •" maxlength="6" pattern="\d{6}" autocomplete="one-time-code" style="letter-spacing: 6px; text-align: center; font-weight: 800; font-size: 1.25rem; height: 46px;">
+                <button type="button" id="regVerifyOtpBtn" class="irctc-btn-otp-action" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); height: 46px;" onclick="window.verifyRegistrationOtp('reg')">
+                  <i class="fa-solid fa-circle-check"></i> Verify OTP
+                </button>
+              </div>
+
+              <!-- Expiry countdown & Resend -->
+              <div class="irctc-otp-timer" id="regOtpTimer" style="margin: 0.4rem 0;">
+                <i class="fa-regular fa-clock"></i> Code expires in <span id="regOtpTimerCount" style="font-weight: 700; margin-left: 2px;">02:00</span>
+              </div>
+              <div class="irctc-otp-resend-wrap">
+                Didn't receive email? 
+                <button type="button" id="regResendOtpBtn" class="irctc-link-btn" onclick="window.sendAuthOtp('reg', 'registration')" disabled>
+                  Resend OTP <span id="regCooldownText"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- OTP Status Alert Box for Registration -->
+          <div id="regOtpStatus" class="irctc-status-alert"></div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">Password *</label>
+              {{ form.password }}
+              {% if form.password.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.password.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; color: #1E293B; font-size: 0.92rem;">Confirm Password *</label>
+              {{ form.confirm_password }}
+              {% if form.confirm_password.errors %}<span style="color: var(--danger); font-size: 0.8rem;">{{ form.confirm_password.errors.0 }}</span>{% endif %}
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 1.5rem;">
+            <button type="submit" class="irctc-btn-pill" style="width: 100%; height: 48px; font-size: 1rem;" id="registerSubmitBtn">
+              <i class="fa-solid fa-user-check"></i> Create My Account
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- TAB 2: Quick 1-Click Instant OTP Registration / Login -->
+      <div id="quickRegisterSection" style="display: none;">
+        <div id="regQuickOtpStatus" class="irctc-status-alert"></div>
+
+        <!-- Quick Email Input Section -->
+        <div id="regQuickEmailSection">
+          <div class="irctc-form-group">
+            <label class="irctc-label">Email Address</label>
+            <div class="irctc-input-wrap">
+              <input type="email" id="regQuickOtpEmail" class="irctc-input" placeholder="Enter your email to receive OTP" required>
+              <i class="fa-regular fa-envelope irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" id="regQuickSendOtpBtn" class="irctc-btn-pill" style="width: 100%; height: 48px;" onclick="window.sendAuthOtp('regQuick', 'auth')">
+              Send Email OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick OTP Verification Section -->
+        <div id="regQuickOtpInputSection" style="display: none;">
+          <div class="irctc-form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+              <label class="irctc-label" style="margin-bottom: 0;">Enter 6-Digit OTP</label>
+              <button type="button" class="irctc-link-btn" onclick="resetOtpSection('regQuick')" style="font-size: 0.85rem;">
+                Change Email
+              </button>
+            </div>
+            <div class="irctc-input-wrap">
+              <input type="text" id="regQuickOtpCode" class="irctc-input irctc-otp-input" placeholder="• • • • • •" maxlength="6" pattern="\d{6}" autocomplete="one-time-code">
+              <i class="fa-solid fa-key irctc-input-icon"></i>
+            </div>
+          </div>
+
+          <div class="irctc-otp-timer" id="regQuickOtpTimer">
+            <i class="fa-regular fa-clock"></i> Valid for <span id="regQuickOtpTimerCount" style="font-weight: 700; margin-left: 2px;">02:00</span>
+          </div>
+
+          <div class="irctc-btn-wrap">
+            <button type="button" id="regQuickVerifyOtpBtn" class="irctc-btn-pill" style="width: 100%; height: 48px;" onclick="window.verifyAuthOtp('regQuick')">
+              Verify OTP & Get Started
+            </button>
+          </div>
+
+          <div class="irctc-otp-resend-wrap">
+            Didn't receive code? 
+            <button type="button" id="regQuickResendOtpBtn" class="irctc-link-btn" onclick="window.sendAuthOtp('regQuick', 'auth')" disabled>
+              Resend OTP <span id="regQuickCooldownText"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="irctc-divider"></div>
+
+      <div class="irctc-card-footer">
+        Already registered? <a href="{% url 'accounts:login' %}" class="irctc-link">Sign in here &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchRegisterTab(tab) {
+    const fullTab = document.getElementById('tabFullRegister');
+    const quickTab = document.getElementById('tabQuickRegister');
+    const fullSection = document.getElementById('fullRegisterSection');
+    const quickSection = document.getElementById('quickRegisterSection');
+
+    if (tab === 'full') {
+      fullTab.classList.add('active');
+      quickTab.classList.remove('active');
+      fullSection.style.display = 'block';
+      quickSection.style.display = 'none';
+    } else {
+      quickTab.classList.add('active');
+      fullTab.classList.remove('active');
+      fullSection.style.display = 'none';
+      quickSection.style.display = 'block';
+    }
+  }
+
+  // Pre-validate on form submission
+  document.getElementById('fullRegisterForm').addEventListener('submit', function(e) {
+    const hiddenOtp = document.getElementById('hiddenEmailOtp') ? document.getElementById('hiddenEmailOtp').value.trim() : '';
+    const isVerifiedFlag = document.getElementById('isEmailVerifiedHidden') ? document.getElementById('isEmailVerifiedHidden').value : '0';
+    const isVerifiedGlobal = typeof window.isEmailOtpVerified !== 'undefined' && window.isEmailOtpVerified === true;
+
+    const isVerified = isVerifiedGlobal || isVerifiedFlag === '1' || (hiddenOtp.length === 6 && /^\d{6}$/.test(hiddenOtp));
+
+    if (!isVerified) {
+      e.preventDefault();
+      const statusBox = document.getElementById('regOtpStatus');
+      if (statusBox) {
+        statusBox.className = 'irctc-status-alert error';
+        statusBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Please click <strong>"Verify via OTP"</strong> and enter the 6-digit code sent to your email before submitting.';
+        statusBox.style.display = 'block';
+      }
+      const otpInputSection = document.getElementById('regOtpInputSection');
+      if (otpInputSection && otpInputSection.style.display !== 'none') {
+        const otpCodeInput = document.getElementById('regOtpCode');
+        if (otpCodeInput) otpCodeInput.focus();
+      } else {
+        const sendBtn = document.getElementById('regSendOtpBtn');
+        if (sendBtn) {
+          sendBtn.classList.add('pulse-glow');
+          setTimeout(() => sendBtn.classList.remove('pulse-glow'), 2500);
+        }
+      }
+    }
+  });
+</script>
+
+{% endblock %}
+

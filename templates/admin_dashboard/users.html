@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Registered Users Directory</h1>
+      <p>Platform accounts, customer roles, and reservation activity</p>
+    </div>
+    <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+      <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Email Address</th>
+          <th>Role</th>
+          <th>Joined Date</th>
+          <th>Total Bookings</th>
+          <th>Total Spent</th>
+          <th>Django Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong style="color: var(--primary);">{{ u.username }}</strong></td>
+          <td>{{ u.get_full_name|default:'-' }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            {% if u.is_superuser or u.profile.role == 'ADMIN' %}
+              <span class="badge badge-primary">Admin</span>
+            {% else %}
+              <span class="badge badge-neutral">Customer</span>
+            {% endif %}
+          </td>
+          <td style="font-size: 0.85rem; color: var(--text-muted);">{{ u.date_joined|date:"d M Y" }}</td>
+          <td><strong>{{ u.booking_count }}</strong></td>
+          <td><strong>₹{{ u.spent_total|default:'0.00' }}</strong></td>
+          <td>
+            <a href="/admin/auth/user/{{ u.id }}/change/" target="_blank" class="btn btn-sm btn-outline">
+              Edit User
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

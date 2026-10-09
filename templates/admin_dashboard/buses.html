@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Buses & Schedules — RailAway Admin{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>Bus Routes & Fleet Inventory</h1>
+      <p>Luxury bus operators, routes, sleeper/seater decks, and departure schedules</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'admin_dashboard:home' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+      </a>
+      <a href="/admin/buses/busschedule/add/" target="_blank" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add New Bus Schedule
+      </a>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Bus Number</th>
+          <th>Operator</th>
+          <th>Route</th>
+          <th>Date & Departure</th>
+          <th>Category</th>
+          <th>Base Fare</th>
+          <th>Status</th>
+          <th>Django Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td><strong style="color: #ea580c;">{{ s.bus.bus_number }}</strong></td>
+          <td><strong>{{ s.bus.operator.name }}</strong> (★ {{ s.bus.operator.rating }})</td>
+          <td>{{ s.route.source_city }} &rarr; {{ s.route.destination_city }}</td>
+          <td>{{ s.journey_date }} at {{ s.departure_time|time:"H:i" }}</td>
+          <td><span class="badge badge-bus">{{ s.bus.get_bus_type_display }}</span></td>
+          <td><strong>₹{{ s.base_fare }}</strong></td>
+          <td>
+            {% if s.is_active %}
+              <span class="badge badge-success">Running</span>
+            {% else %}
+              <span class="badge badge-danger">Cancelled</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/buses/busschedule/{{ s.id }}/change/" target="_blank" class="btn btn-sm btn-outline">
+              Edit in Admin
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

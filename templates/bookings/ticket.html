@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}E-Ticket & Boarding Pass — PNR: {{ booking.pnr }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="ticket-container">
+  <!-- Top Action Bar (hidden when printing) -->
+  <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{% url 'bookings:history' %}" class="btn btn-sm btn-outline" id="backToHistoryBtn">
+        <i class="fa-solid fa-arrow-left"></i> My Bookings
+      </a>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-sm btn-outline" id="backToDashboardBtn">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </a>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      {% if booking.booking_status == 'PENDING' %}
+        <a href="{% url 'payments:process_payment' booking_id=booking.id %}" class="btn btn-sm btn-success" style="font-weight: 700;" id="ticketPayNowBtn">
+          <i class="fa-solid fa-credit-card"></i> Pay ₹{{ booking.total_amount }} Now &rarr;
+        </a>
+        <a href="{% url 'bookings:cancel' pnr=booking.pnr %}" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: #fca5a5;" id="ticketCancelPendingBtn">
+          <i class="fa-solid fa-ban"></i> Cancel Booking
+        </a>
+      {% elif booking.booking_status == 'CONFIRMED' %}
+        {% if can_cancel %}
+          <a href="{% url 'bookings:cancel' pnr=booking.pnr %}" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: #fca5a5;" id="ticketCancelConfirmedBtn" title="Cancel this reservation">
+            <i class="fa-solid fa-ban"></i> Cancel Booking
+          </a>
+        {% endif %}
+      {% endif %}
+
+      <button type="button" class="btn btn-sm btn-primary" onclick="window.print();" id="printTicketBtn">
+        <i class="fa-solid fa-print"></i> Print E-Ticket
+      </button>
+
+      <a href="{% url 'core:home' %}" class="btn btn-sm btn-outline" id="ticketBookAnotherBtn">
+        <i class="fa-solid fa-plus"></i> Book Another Trip
+      </a>
+    </div>
+  </div>
+
+  <!-- The Ticket Card (Rendered for Screen & Print) -->
+  <div class="ticket-card" id="printableTicketArea">
+    <!-- Ticket Top Banner -->
+    <div class="ticket-top-bar">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="brand-icon" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);">
+          {% if booking.transport_type == 'TRAIN' %}
+            <i class="fa-solid fa-train"></i>
+          {% elif booking.transport_type == 'FLIGHT' %}
+            <i class="fa-solid fa-plane"></i>
+          {% else %}
+            <i class="fa-solid fa-bus"></i>
+          {% endif %}
+        </div>
+        <div>
+          <h2 style="color: #fff; font-size: 1.4rem; margin: 0; line-height: 1.1;">RailAway E-Ticket</h2>
+          <span style="font-size: 0.8rem; color: #93c5fd; letter-spacing: 0.5px;">OFFICIAL MULTI-MODAL TRAVEL PASS</span>
+        </div>
+      </div>
+
+      <div class="ticket-pnr-badge">
+        <div class="pnr-label">BOOKING PNR REF</div>
+        <div class="pnr-value">{{ booking.pnr }}</div>
+      </div>
+    </div>
+
+    <!-- Ticket Body Content -->
+    <div class="ticket-body">
+      <!-- Status & Service Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.35rem; color: var(--secondary); margin-bottom: 0.2rem;">{{ booking.service_title }}</h3>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">
+            Class: <strong>{{ booking.travel_class }}</strong> &bull; Total Passengers: <strong>{{ booking.passenger_count }}</strong>
+          </span>
+        </div>
+        <div style="text-align: right;">
+          {% if booking.booking_status == 'CONFIRMED' %}
+            <span class="badge badge-success" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+              <i class="fa-solid fa-circle-check"></i> Confirmed & Valid
+            </span>
+          {% elif booking.booking_status == 'CANCELLED' or booking.booking_status == 'REFUNDED' %}
+            <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+              <i class="fa-solid fa-circle-xmark"></i> Cancelled (Refunded: ₹{{ booking.refund_amount }})
+            </span>
+          {% elif booking.booking_status == 'PENDING' %}
+            <span class="badge badge-warning" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+              <i class="fa-solid fa-clock"></i> Pending Payment
+            </span>
+          {% else %}
+            <span class="badge badge-warning" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+              {{ booking.booking_status }}
+            </span>
+          {% endif %}
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">
+            Booked on {{ booking.created_at|date:"d M Y, H:i" }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Journey Route Node Display -->
+      <div class="ticket-journey-grid">
+        <div class="journey-node">
+          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Departure</div>
+          <div class="city-code">{{ booking.source_location }}</div>
+          <div class="journey-time"><i class="fa-regular fa-clock"></i> {{ booking.departure_time }}</div>
+        </div>
+
+        <div class="journey-center-meta">
+          <div class="journey-date-badge">
+            <i class="fa-solid fa-calendar-day" style="color: var(--primary);"></i> {{ booking.journey_date }}
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+            {{ booking.duration_text|default:'Scheduled Trip' }}
+          </div>
+          <div style="color: var(--primary); font-size: 1.2rem; margin-top: 0.2rem;">
+            &rarr; &rarr; &rarr;
+          </div>
+        </div>
+
+        <div class="journey-node destination">
+          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Arrival</div>
+          <div class="city-code">{{ booking.destination_location }}</div>
+          <div class="journey-time"><i class="fa-regular fa-clock"></i> {{ booking.arrival_time }}</div>
+        </div>
+      </div>
+
+      <!-- Passenger Details Table -->
+      <div class="passenger-table-container">
+        <h4 style="font-size: 1.05rem; color: var(--secondary); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">
+          Passenger Information
+        </h4>
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Passenger Name</th>
+              <th>Age / Gender</th>
+              <th>ID Verification</th>
+              <th>Allocated Seat / Berth</th>
+              <th>Preference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in booking.passengers.all %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><strong>{{ p.full_name }}</strong></td>
+              <td>{{ p.age }} / {{ p.get_gender_display }}</td>
+              <td>{{ p.get_id_type_display }}: <code style="font-weight: 600;">{{ p.masked_id }}</code></td>
+              <td>
+                <span class="badge badge-primary" style="font-size: 0.85rem; font-family: monospace;">
+                  {{ p.seat_number }}
+                </span>
+              </td>
+              <td>{{ p.berth_preference|default:'Confirmed' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Payment & Transaction Breakdown -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; background: var(--bg-subtle); padding: 1.25rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Payment Details</span>
+          <div style="font-size: 0.9rem; margin-top: 0.3rem;">
+            <strong>Method:</strong> {{ booking.payment.get_payment_method_display|default:'Demo Card / UPI' }} &bull;
+            <strong>Txn ID:</strong> <code style="font-family: monospace;">{{ booking.payment.transaction_id|default:'TXN-DEMO-APPROVED' }}</code>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+            Customer: {{ booking.user.get_full_name|default:booking.user.username }} ({{ booking.user.email }})
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Amount</span>
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--secondary);">₹{{ booking.total_amount }}</div>
+          {% if booking.booking_status == 'CONFIRMED' %}
+            <span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">Payment Completed</span>
+          {% elif booking.booking_status == 'PENDING' %}
+            <span style="font-size: 0.75rem; color: var(--warning); font-weight: 700;">Payment Pending</span>
+          {% elif booking.booking_status == 'CANCELLED' or booking.booking_status == 'REFUNDED' %}
+            <span style="font-size: 0.75rem; color: var(--danger); font-weight: 700;">Refund ₹{{ booking.refund_amount }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Ticket Security Footer Strip (QR Code & Barcode) -->
+      <div class="ticket-footer-strip">
+        <div class="qr-code-box">
+          <!-- Visual Simulated QR Pattern -->
+          <div class="simulated-qr" title="Scannable RailAway Digital Pass">
+            <div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot white"></div><div class="qr-dot"></div>
+            <div class="qr-dot"></div><div class="qr-dot white"></div><div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot white"></div>
+            <div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot white"></div><div class="qr-dot"></div><div class="qr-dot"></div>
+            <div class="qr-dot white"></div><div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot white"></div><div class="qr-dot"></div>
+            <div class="qr-dot"></div><div class="qr-dot white"></div><div class="qr-dot"></div><div class="qr-dot"></div><div class="qr-dot"></div>
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--secondary);">Security Scannable Pass</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+              Carry this printable ticket or digital QR on mobile along with an original Government Photo ID during travel.
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <div class="barcode-strip"></div>
+          <span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">*{{ booking.pnr }}*</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Value-Add Services Cross-Sell Grid (Hidden on Print) -->
+  {% if booking.booking_status == 'CONFIRMED' %}
+  <div class="no-print" style="margin-top: 2.5rem;">
+    <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 1.25rem;">
+      <i class="fa-solid fa-wand-magic-sparkles" style="color: #FF671F;"></i> Enhance Your Journey Experience
+    </h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem;">
+      <!-- Card 1: Order Food to Seat -->
+      {% if booking.transport_type == 'TRAIN' %}
+      <div class="card" style="padding: 1.5rem; border-top: 4px solid #FF671F; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <span class="badge badge-warning" style="margin-bottom: 0.4rem; font-size: 0.75rem;">
+            <i class="fa-solid fa-utensils"></i> E-CATERING
+          </span>
+          <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.35rem;">Order Food to Seat</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+            Hot Thalis & Snacks delivered to Coach {{ booking.allocated_seats }} on train arrival.
+          </p>
+        </div>
+        <a href="{% url 'food_catering:menu' %}?pnr={{ booking.pnr }}&train={{ booking.train_schedule.train.train_number|default:'' }}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%);">
+          <i class="fa-solid fa-cart-plus"></i> Order Meals &rarr;
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Card 2: Book Retiring Room -->
+      <div class="card" style="padding: 1.5rem; border-top: 4px solid #000080; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <span class="badge badge-flight" style="margin-bottom: 0.4rem; font-size: 0.75rem;">
+            <i class="fa-solid fa-bed"></i> STATION LODGING
+          </span>
+          <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.35rem;">Book Retiring Room</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+            Need a place to rest at {{ booking.destination_location }}? AC Dormitory from ₹250.
+          </p>
+        </div>
+        <a href="{% url 'retiring_rooms:search' %}?station={{ booking.destination_location }}&pnr={{ booking.pnr }}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #000080 0%, #1E3A8A 100%);">
+          <i class="fa-solid fa-bed"></i> Book Retiring Room &rarr;
+        </a>
+      </div>
+
+      <!-- Card 3: Share Experience -->
+      <div class="card" style="padding: 1.5rem; border-top: 4px solid #046A38; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <span class="badge badge-success" style="margin-bottom: 0.4rem; font-size: 0.75rem;">
+            <i class="fa-solid fa-star"></i> TRAVEL FEEDBACK
+          </span>
+          <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.35rem;">Rate Your Experience</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+            Share your thoughts on punctuality, cleanliness, and comfort with fellow passengers.
+          </p>
+        </div>
+        <a href="{% url 'experiences:hub' %}?pnr={{ booking.pnr }}" class="btn btn-sm btn-outline-primary">
+          <i class="fa-solid fa-pen-nib"></i> Write Review &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

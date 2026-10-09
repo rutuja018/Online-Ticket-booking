@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Food in Train — E-Catering Hot Meals Delivered to Your Seat — RailAway{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section style="background: linear-gradient(135deg, #0A1931 0%, #000080 50%, #1E3A8A 100%); color: #fff; padding: 4.5rem 1rem 3.5rem 1rem; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: -40px; right: -40px; width: 300px; height: 300px; background: rgba(255, 103, 31, 0.18); border-radius: 50%; filter: blur(50px);"></div>
+  <div style="position: absolute; bottom: -40px; left: -40px; width: 280px; height: 280px; background: rgba(4, 106, 56, 0.18); border-radius: 50%; filter: blur(50px);"></div>
+
+  <div class="container" style="text-align: center; max-width: 860px; margin: 0 auto; position: relative; z-index: 2;">
+    <span class="badge" style="background: rgba(255, 103, 31, 0.25); color: #FF9933; border: 1px solid #FF671F; font-size: 0.85rem; margin-bottom: 1rem; padding: 0.4rem 1rem;">
+      <i class="fa-solid fa-utensils"></i> IRCTC E-Catering Partner & Station Food Delivery
+    </span>
+    <h1 style="font-size: 2.8rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem; line-height: 1.2;">
+      Hot & Fresh Meals <span style="color: #FF9933;">Delivered to Your Berth</span>
+    </h1>
+    <p style="font-size: 1.15rem; opacity: 0.9; line-height: 1.6; margin-bottom: 2rem;">
+      Order Royal Thalis, Dum Biryani, Pure Jain Meals, Breakfast Combos & Haldiram's treats right to your train seat.
+    </p>
+
+    <!-- PNR / Train Meal Search Card -->
+    <div class="card" style="padding: 2rem; background: #fff; color: var(--secondary); text-align: left; box-shadow: 0 20px 45px rgba(0,0,0,0.28); border-top: 5px solid #FF671F;">
+      <div style="display: flex; gap: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <button type="button" class="tab-btn active" id="tabPnrBtn" onclick="switchSearchMode('pnr')" style="font-weight: 700; color: #FF671F; font-size: 1rem; background: none; border: none; cursor: pointer; padding: 0.3rem 0.6rem; border-bottom: 3px solid #FF671F;">
+          <i class="fa-solid fa-ticket"></i> Find by PNR Number
+        </button>
+        <button type="button" class="tab-btn" id="tabStationBtn" onclick="switchSearchMode('station')" style="font-weight: 700; color: var(--text-muted); font-size: 1rem; background: none; border: none; cursor: pointer; padding: 0.3rem 0.6rem;">
+          <i class="fa-solid fa-train"></i> Search by Station / Train
+        </button>
+      </div>
+
+      <!-- Mode 1: Search by PNR -->
+      <div id="pnrSearchForm">
+        <form action="{% url 'food_catering:menu' %}" method="GET" id="foodPnrForm">
+          <div style="display: grid; grid-template-columns: 3fr 1.2fr; gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-weight: 700; color: #FF671F;">
+                <i class="fa-solid fa-qrcode"></i> Enter 10-Digit PNR / Booking Reference
+              </label>
+              <input type="text" name="pnr" id="pnrInput" class="form-input" placeholder="e.g. RAW-2026-8F73K2" value="{% if user_train_booking %}{{ user_train_booking.pnr }}{% endif %}" style="font-size: 1.05rem; font-weight: 700; letter-spacing: 0.5px;" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <button type="button" onclick="lookupAndProceed()" class="btn btn-primary" style="width: 100%; height: 48px; background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%); font-weight: 700;">
+                <i class="fa-solid fa-magnifying-glass"></i> Find Meals
+              </button>
+            </div>
+          </div>
+          {% if user_train_booking %}
+          <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #046A38; font-weight: 600;">
+            <i class="fa-solid fa-circle-check"></i> Auto-detected upcoming trip: <strong>{{ user_train_booking.service_title }}</strong> on {{ user_train_booking.journey_date }}
+          </div>
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- Mode 2: Search by Station / Train -->
+      <div id="stationSearchForm" style="display: none;">
+        <form action="{% url 'food_catering:menu' %}" method="GET">
+          <div style="display: grid; grid-template-columns: 2fr 2fr 1.2fr; gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-weight: 700; color: #046A38;">
+                <i class="fa-solid fa-location-dot"></i> Delivery Station
+              </label>
+              <select name="station_code" class="form-select" required>
+                {% for stn in stations %}
+                  <option value="{{ stn.code }}">{{ stn.name }} ({{ stn.code }}) - {{ stn.city }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-weight: 700; color: #000080;">
+                <i class="fa-solid fa-train"></i> Train Number / Name (Optional)
+              </label>
+              <input type="text" name="train" class="form-input" placeholder="e.g. 22436 Vande Bharat">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <button type="submit" class="btn btn-primary" style="width: 100%; height: 48px; background: linear-gradient(135deg, #046A38 0%, #0D8249 100%); font-weight: 700;">
+                <i class="fa-solid fa-utensils"></i> Browse Menu
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dietary Assurance Badges -->
+<div class="container" style="margin-top: 3.5rem; margin-bottom: 3.5rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #046A38;">
+      <div style="font-size: 2.2rem; color: #046A38;"><i class="fa-solid fa-leaf"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">100% Pure Veg & Jain</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Separate preparation kitchens with no onion/garlic options.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #FF671F;">
+      <div style="font-size: 2.2rem; color: #FF671F;"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Piping Hot at Berth</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Freshly packed 15 mins before train station arrival.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #000080;">
+      <div style="font-size: 2.2rem; color: #000080;"><i class="fa-solid fa-shield-virus"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">FSSAI Certified</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Strict hygiene audits, sealed tamper-proof packaging.</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid #9333ea;">
+      <div style="font-size: 2.2rem; color: #9333ea;"><i class="fa-solid fa-money-bill-wave"></i></div>
+      <div>
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Cash on Delivery</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Pay with UPI or Cash directly to the delivery runner.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chef's Bestsellers & Popular Meals -->
+<div class="container" style="margin-bottom: 4.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem;">
+    <div>
+      <span class="badge badge-primary" style="margin-bottom: 0.4rem;">
+        <i class="fa-solid fa-fire"></i> MOST ORDERED IN TRAINS
+      </span>
+      <h2 style="font-size: 1.85rem; color: var(--secondary);">Traveler Favorite Meals & Thalis</h2>
+    </div>
+    <a href="{% url 'food_catering:menu' %}" class="btn btn-sm btn-outline-primary" style="font-weight: 700;">
+      View Full Menu &rarr;
+    </a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.5rem;">
+    {% for item in featured_items %}
+    <div class="card" style="padding: 0; overflow: hidden; border-top: 3px solid {% if item.is_veg %}#046A38{% else %}#DC2626{% endif %}; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="height: 180px; overflow: hidden; position: relative;">
+        <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+        <span class="badge" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.75rem;">
+          {% if item.is_veg %}
+            <i class="fa-solid fa-circle" style="color: #10B981; font-size: 0.65rem;"></i> PURE VEG
+          {% else %}
+            <i class="fa-solid fa-circle" style="color: #EF4444; font-size: 0.65rem;"></i> NON-VEG
+          {% endif %}
+          {% if item.is_jain %} &bull; JAIN{% endif %}
+        </span>
+        <span class="badge" style="position: absolute; bottom: 10px; right: 10px; background: #FF671F; color: #fff; font-weight: 800; font-size: 0.75rem;">
+          ★ {{ item.rating }}
+        </span>
+      </div>
+
+      <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+            {{ item.restaurant.station.city }} &bull; {{ item.restaurant.name }}
+          </div>
+          <h4 style="font-size: 1.15rem; margin-bottom: 0.4rem; color: var(--secondary);">{{ item.name }}</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ item.description|default:"Prepared fresh with authentic spices and delivered hot to your coach berth." }}
+          </p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Price</span><br>
+            <strong style="font-size: 1.3rem; color: var(--secondary);">₹{{ item.price }}</strong>
+          </div>
+          <a href="{% url 'food_catering:menu' %}?restaurant_id={{ item.restaurant.id }}" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%);">
+            <i class="fa-solid fa-cart-plus"></i> Order Dish
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Station Partner Kitchens Section -->
+<div class="container" style="margin-bottom: 5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem;">
+    <div>
+      <span class="badge badge-success" style="margin-bottom: 0.4rem;">
+        <i class="fa-solid fa-store"></i> TRUSTED RESTAURANTS
+      </span>
+      <h2 style="font-size: 1.85rem; color: var(--secondary);">Top Station Food Plazas</h2>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for r in top_restaurants %}
+    <div class="card" style="padding: 1.5rem; border-top: 4px solid #046A38; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span class="badge badge-train" style="font-size: 0.75rem; margin-bottom: 0.35rem;">
+          {{ r.station.name }} ({{ r.station.code }})
+        </span>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.25rem;">{{ r.name }}</h4>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+          {{ r.cuisine }}
+        </div>
+        <div style="font-size: 0.8rem; color: #046A38; font-weight: 700;">
+          ★ {{ r.rating }} ({{ r.review_count }}+ reviews) &bull; Free Delivery above ₹200
+        </div>
+      </div>
+      <div>
+        <a href="{% url 'food_catering:restaurant_menu' restaurant_id=r.id %}" class="btn btn-sm btn-outline-primary">
+          View Menu &rarr;
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function switchSearchMode(mode) {
+    const pnrForm = document.getElementById('pnrSearchForm');
+    const stationForm = document.getElementById('stationSearchForm');
+    const pnrBtn = document.getElementById('tabPnrBtn');
+    const stationBtn = document.getElementById('tabStationBtn');
+
+    if (mode === 'pnr') {
+      pnrForm.style.display = 'block';
+      stationForm.style.display = 'none';
+      pnrBtn.style.color = '#FF671F';
+      pnrBtn.style.borderBottom = '3px solid #FF671F';
+      stationBtn.style.color = 'var(--text-muted)';
+      stationBtn.style.borderBottom = 'none';
+    } else {
+      pnrForm.style.display = 'none';
+      stationForm.style.display = 'block';
+      stationBtn.style.color = '#046A38';
+      stationBtn.style.borderBottom = '3px solid #046A38';
+      pnrBtn.style.color = 'var(--text-muted)';
+      pnrBtn.style.borderBottom = 'none';
+    }
+  }
+
+  function lookupAndProceed() {
+    const pnr = document.getElementById('pnrInput').value.trim();
+    if (!pnr) {
+      alert("Please enter a valid PNR number.");
+      return;
+    }
+
+    // Attempt AJAX lookup first to get station code
+    fetch(`/food/api/pnr-lookup/?pnr=${encodeURIComponent(pnr)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.found) {
+          window.location.href = `/food/menu/?pnr=${encodeURIComponent(data.pnr)}&train=${encodeURIComponent(data.train_number)}&coach=${encodeURIComponent(data.coach)}&seat=${encodeURIComponent(data.seat_number)}`;
+        } else {
+          // If not in demo DB, proceed to generic menu with PNR param
+          window.location.href = `/food/menu/?pnr=${encodeURIComponent(pnr)}`;
+        }
+      })
+      .catch(() => {
+        window.location.href = `/food/menu/?pnr=${encodeURIComponent(pnr)}`;
+      });
+  }
+</script>
+{% endblock %}

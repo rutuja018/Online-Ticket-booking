@@ -1,0 +1,183 @@
+{% load static %}
+<header class="site-navbar">
+  <div class="container navbar-inner">
+    <!-- Brand Logo -->
+    <a href="{% url 'core:home' %}" class="brand-logo" id="brandLogoLink">
+      <div class="brand-icon">
+        <i class="fa-solid fa-train-subway"></i>
+      </div>
+      <div class="brand-name">
+        Rail<span>Away</span>
+      </div>
+    </a>
+
+    <!-- Navigation Links -->
+    <nav>
+      <ul class="nav-links">
+        <li>
+          <a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' and request.resolver_match.app_name == 'core' %}active{% endif %}">
+            <i class="fa-solid fa-house"></i> Home
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'railways:search' %}" class="nav-link {% if request.resolver_match.app_name == 'railways' %}active{% endif %}">
+            <i class="fa-solid fa-train"></i> Trains
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'airlines:search' %}" class="nav-link {% if request.resolver_match.app_name == 'airlines' %}active{% endif %}">
+            <i class="fa-solid fa-plane-departure"></i> Flights
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'buses:search' %}" class="nav-link {% if request.resolver_match.app_name == 'buses' %}active{% endif %}">
+            <i class="fa-solid fa-bus"></i> Buses
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'hotels:index' %}" class="nav-link {% if request.resolver_match.app_name == 'hotels' %}active{% endif %}">
+            <i class="fa-solid fa-hotel"></i> Hotels
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'food_catering:index' %}" class="nav-link {% if request.resolver_match.app_name == 'food_catering' %}active{% endif %}">
+            <i class="fa-solid fa-utensils" style="color: #FF671F;"></i> Food in Train
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'retiring_rooms:index' %}" class="nav-link {% if request.resolver_match.app_name == 'retiring_rooms' %}active{% endif %}">
+            <i class="fa-solid fa-bed" style="color: #000080;"></i> Retiring Rooms
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'experiences:hub' %}" class="nav-link {% if request.resolver_match.app_name == 'experiences' %}active{% endif %}">
+            <i class="fa-solid fa-star" style="color: #FF9933;"></i> Reviews
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+        <li>
+          <a href="{% url 'bookings:calendar' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' and request.resolver_match.app_name == 'bookings' %}active{% endif %}">
+            <i class="fa-regular fa-calendar-days"></i> Calendar
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'bookings:history' %}" class="nav-link {% if request.resolver_match.url_name == 'history' and request.resolver_match.app_name == 'bookings' %}active{% endif %}">
+            <i class="fa-solid fa-ticket"></i> My Bookings
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+
+    <!-- User Action Controls & i18n Selectors -->
+    <div class="nav-actions">
+      <!-- Currency Dropdown -->
+      <div class="i18n-dropdown-container">
+        <button type="button" class="i18n-dropdown-toggle" id="navbarCurrencyDropdown" title="Change Display Currency">
+          <span class="current-currency-display">🇮🇳 INR (₹)</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="i18n-dropdown-menu" id="currencyMenu">
+          <button type="button" class="i18n-dropdown-item active-i18n" data-set-currency="INR">
+            <span><span class="i18n-flag">🇮🇳</span> INR (₹)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="USD">
+            <span><span class="i18n-flag">🇺🇸</span> USD ($)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="EUR">
+            <span><span class="i18n-flag">🇪🇺</span> EUR (€)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="GBP">
+            <span><span class="i18n-flag">🇬🇧</span> GBP (£)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="AED">
+            <span><span class="i18n-flag">🇦🇪</span> AED (AED)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="SGD">
+            <span><span class="i18n-flag">🇸🇬</span> SGD (S$)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="CAD">
+            <span><span class="i18n-flag">🇨🇦</span> CAD (CA$)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="AUD">
+            <span><span class="i18n-flag">🇦🇺</span> AUD (A$)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="JPY">
+            <span><span class="i18n-flag">🇯🇵</span> JPY (¥)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-currency="SAR">
+            <span><span class="i18n-flag">🇸🇦</span> SAR (SAR)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Language Dropdown -->
+      <div class="i18n-dropdown-container">
+        <button type="button" class="i18n-dropdown-toggle" id="navbarLanguageDropdown" title="Select Preferred Language">
+          <i class="fa-solid fa-globe" style="color: var(--primary);"></i>
+          <span class="current-lang-display">🇬🇧 English</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="i18n-dropdown-menu" id="languageMenu">
+          <button type="button" class="i18n-dropdown-item active-i18n" data-set-lang="en">
+            <span><span class="i18n-flag">🇬🇧</span> English</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="hi">
+            <span><span class="i18n-flag">🇮🇳</span> हिन्दी (Hindi)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="mr">
+            <span><span class="i18n-flag">🇮🇳</span> मराठी (Marathi)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="ta">
+            <span><span class="i18n-flag">🇮🇳</span> தமிழ் (Tamil)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="te">
+            <span><span class="i18n-flag">🇮🇳</span> తెలుగు (Telugu)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="bn">
+            <span><span class="i18n-flag">🇮🇳</span> বাংলা (Bengali)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="gu">
+            <span><span class="i18n-flag">🇮🇳</span> ગુજરાતી (Gujarati)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="kn">
+            <span><span class="i18n-flag">🇮🇳</span> ಕನ್ನಡ (Kannada)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="es">
+            <span><span class="i18n-flag">🇪🇸</span> Español (Spanish)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="fr">
+            <span><span class="i18n-flag">🇫🇷</span> Français (French)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="ar">
+            <span><span class="i18n-flag">🇸🇦</span> العربية (Arabic)</span>
+          </button>
+          <button type="button" class="i18n-dropdown-item" data-set-lang="de">
+            <span><span class="i18n-flag">🇩🇪</span> Deutsch (German)</span>
+          </button>
+        </div>
+      </div>
+
+      {% if user.is_authenticated %}
+        {% if IS_ADMIN_USER %}
+        <a href="{% url 'admin_dashboard:home' %}" class="btn btn-sm btn-outline-primary" style="font-weight: 700;">
+          <i class="fa-solid fa-gauge-high"></i> Admin Portal
+        </a>
+        {% endif %}
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-sm btn-outline">
+          <i class="fa-solid fa-user-circle"></i> Dashboard
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-sm btn-outline-primary">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline" id="navLoginBtn">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Login
+        </a>
+        <a href="{% url 'accounts:register' %}" class="btn btn-sm btn-primary" id="navRegisterBtn">
+          <i class="fa-solid fa-user-plus"></i> Register
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</header>

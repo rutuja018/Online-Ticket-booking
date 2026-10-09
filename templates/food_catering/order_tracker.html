@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Meal Order Status #{{ order.order_ref }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 3rem; margin-bottom: 5rem; max-width: 860px;">
+  <!-- Order Confirmed Hero Box -->
+  <div class="card" style="padding: 2.25rem; text-align: center; border-top: 5px solid #046A38; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: #ECFDF5; color: #046A38; border: 3px solid #A7F3D0; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+      <i class="fa-solid fa-utensils"></i>
+    </div>
+    
+    <span class="badge badge-success" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+      <i class="fa-solid fa-circle-check"></i> ORDER CONFIRMED & KITCHEN NOTIFIED
+    </span>
+    <h1 style="font-size: 2rem; color: var(--secondary); margin-bottom: 0.35rem;">
+      Delivering to Coach {{ order.coach }}, Seat {{ order.seat_number }}
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+      Train: <strong>{{ order.train_name }} ({{ order.train_number }})</strong> &bull; Station: <strong>{{ order.delivery_station.name }} ({{ order.delivery_station.code }})</strong>
+    </p>
+
+    <!-- Visual Order Tracker Stepper -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 2rem 0; position: relative;">
+      <!-- Step 1: Placed -->
+      <div style="text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #046A38; color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-weight: 700; box-shadow: 0 4px 10px rgba(4, 106, 56, 0.3);">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #046A38;">Order Placed</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Confirmed</div>
+      </div>
+
+      <!-- Step 2: Preparing -->
+      <div style="text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #FF671F; color: #fff; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-weight: 700; box-shadow: 0 4px 10px rgba(255, 103, 31, 0.3); animation: pulse 2s infinite;">
+          <i class="fa-solid fa-kitchen-set"></i>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #FF671F;">Preparing</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Station Kitchen</div>
+      </div>
+
+      <!-- Step 3: Out for Delivery -->
+      <div style="text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #EFF6FF; color: #000080; border: 2px solid #BFDBFE; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-weight: 700;">
+          <i class="fa-solid fa-person-walking-luggage"></i>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #000080;">At Platform</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Runner Dispatched</div>
+      </div>
+
+      <!-- Step 4: Delivered -->
+      <div style="text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--bg-subtle); color: var(--text-muted); border: 2px solid var(--border); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-weight: 700;">
+          <i class="fa-solid fa-couch"></i>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">Delivered</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">To Coach Berth</div>
+      </div>
+    </div>
+
+    <!-- Quick Meta Chips -->
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <div style="background: var(--bg-subtle); padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        Order Ref: <strong style="color: var(--primary); font-family: monospace;">{{ order.order_ref }}</strong>
+      </div>
+      <div style="background: var(--bg-subtle); padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        Payment: <strong>{{ order.get_payment_method_display }} ({{ order.get_payment_status_display }})</strong>
+      </div>
+      <div style="background: var(--bg-subtle); padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        Contact: <strong>{{ order.passenger_phone }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Invoice & Meal Summary -->
+  <div class="card" style="padding: 2rem; border-top: 4px solid var(--secondary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+      <h3 style="font-size: 1.25rem; color: var(--secondary); margin: 0;">Ordered Dishes</h3>
+      <button onclick="window.print()" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-print"></i> Print Slip
+      </button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+      {% for item in order.items.all %}
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;">
+        <div>
+          {% if item.is_veg %}
+            <i class="fa-solid fa-circle" style="color: #10B981; font-size: 0.55rem;"></i>
+          {% else %}
+            <i class="fa-solid fa-circle" style="color: #EF4444; font-size: 0.55rem;"></i>
+          {% endif %}
+          <strong>{{ item.item_name }}</strong> &times; {{ item.quantity }}
+        </div>
+        <div style="font-weight: 700;">₹{{ item.total_price }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.35rem;">
+        <span>Item Base Total:</span>
+        <span>₹{{ order.base_amount }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+        <span>GST & Packaging:</span>
+        <span>₹{{ order.gst }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #046A38; margin-bottom: 0.35rem;">
+        <span>Station Delivery Fee:</span>
+        <span>{% if order.delivery_fee > 0 %}₹{{ order.delivery_fee }}{% else %}FREE{% endif %}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 800; color: var(--secondary); border-top: 2px solid var(--border); padding-top: 0.75rem;">
+        <span>Total Paid / Payable:</span>
+        <span style="color: #FF671F;">₹{{ order.total_amount }}</span>
+      </div>
+    </div>
+
+    {% if order.special_instructions %}
+    <div style="margin-top: 1.5rem; background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+      <strong>Cooking Note:</strong> "{{ order.special_instructions }}"
+    </div>
+    {% endif %}
+
+    <!-- Cancellation Policy Note & Action -->
+    <div style="margin-top: 1.5rem; background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <i class="fa-solid fa-utensils" style="color: #ea580c; font-size: 1.3rem;"></i>
+        <div style="font-size: 0.88rem; color: #9a3412;">
+          <strong>Meal Refund Policy:</strong> 100% full refund if cancelled prior to dispatch or if delivery is delayed.
+        </div>
+      </div>
+      <a href="{% url 'core:cancellation_policy' %}?service=food" target="_blank" style="font-size: 0.85rem; font-weight: 700; color: #c2410c; text-decoration: underline;">
+        View Policy &rarr;
+      </a>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+      <a href="{% url 'bookings:history' %}" class="btn btn-outline">
+        &larr; Back to My Bookings
+      </a>
+
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        {% if order.status == 'CONFIRMED' or order.status == 'PREPARING' %}
+          <a href="{% url 'food_catering:cancel_order' order_ref=order.order_ref %}" 
+             onclick="return confirm('Are you sure you want to cancel this meal order? You will receive a 100% full refund of ₹{{ order.total_amount }}.');" 
+             class="btn btn-outline" 
+             style="color: var(--danger); border-color: #fca5a5;" 
+             id="cancelFoodOrderBtn">
+            <i class="fa-solid fa-ban"></i> Cancel Order & Refund
+          </a>
+        {% elif order.status == 'CANCELLED' %}
+          <span class="badge badge-danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            <i class="fa-solid fa-circle-xmark"></i> Order Cancelled (Refund of ₹{{ order.total_amount }} Initiated)
+          </span>
+        {% endif %}
+
+        {% if order.status != 'CANCELLED' %}
+        <a href="{% url 'experiences:hub' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%);">
+          <i class="fa-solid fa-star"></i> Rate Food Quality
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

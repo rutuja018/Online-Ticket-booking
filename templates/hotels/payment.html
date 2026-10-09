@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Simulated Payment — Booking Ref: {{ booking.booking_reference }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; padding: 3rem 1.5rem 6rem 1.5rem;">
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <span class="badge badge-primary" style="margin-bottom: 0.4rem;"><i class="fa-solid fa-lock"></i> 256-Bit SSL Demo Gateway</span>
+    <h1 style="font-size: 2rem; color: var(--secondary);">Complete Hotel Reservation Payment</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      Simulated Checkout Environment &bull; No real currency will be charged
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem;">
+    <!-- Left Column: Payment Methods Form -->
+    <div class="card" style="padding: 2rem;">
+      <form method="POST" id="hotelPaymentForm">
+        {% csrf_token %}
+
+        <!-- Payment Method Selection -->
+        <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--secondary);">Select Payment Method</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.75rem;">
+          <label style="border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700;">
+            <input type="radio" name="payment_method" value="CREDIT_CARD" checked>
+            <i class="fa-solid fa-credit-card" style="font-size: 1.3rem; color: var(--primary);"></i>
+            <span>Card</span>
+          </label>
+
+          <label style="border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700;">
+            <input type="radio" name="payment_method" value="UPI">
+            <i class="fa-solid fa-qrcode" style="font-size: 1.3rem; color: #16a34a;"></i>
+            <span>UPI / QR</span>
+          </label>
+
+          <label style="border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700;">
+            <input type="radio" name="payment_method" value="NET_BANKING">
+            <i class="fa-solid fa-building-columns" style="font-size: 1.3rem; color: #ea580c;"></i>
+            <span>NetBanking</span>
+          </label>
+        </div>
+
+        <!-- Section 1: Credit / Debit Card -->
+        <div class="payment-method-section" id="section_CREDIT_CARD">
+          <div class="form-group">
+            <label class="form-label">Cardholder Name</label>
+            <input type="text" name="cardholder_name" class="form-input" placeholder="Name on Card" value="{{ booking.primary_guest_name }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Card Number (Demo 16-Digits)</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-credit-card"></i>
+              <input type="text" name="card_number" id="cardNumberInput" class="form-input" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242">
+            </div>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Expiry (MM/YY)</label>
+              <input type="text" name="card_expiry" id="cardExpiryInput" class="form-input" placeholder="12/28" value="12/28">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV / CVC</label>
+              <input type="password" name="card_cvv" maxlength="4" class="form-input" placeholder="123" value="123">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: UPI / QR -->
+        <div class="payment-method-section" id="section_UPI" style="display: none;">
+          <div style="text-align: center; padding: 1.5rem; background: var(--bg-subtle); border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+            <div class="simulated-qr" style="margin: 0 auto 0.75rem auto; width: 110px; height: 110px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #16a34a;">
+              <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--secondary);">Scan QR with any UPI App (GPay, PhonePe, Paytm, BHIM)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Or Enter Virtual Payment Address (VPA)</label>
+            <input type="text" name="upi_id" class="form-input" placeholder="user@okhdfcbank" value="rohan@okaxis">
+          </div>
+        </div>
+
+        <!-- Section 3: Net Banking -->
+        <div class="payment-method-section" id="section_NET_BANKING" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Select Your Bank</label>
+            <select name="bank_name" class="form-select">
+              <option value="State Bank of India">State Bank of India (SBI)</option>
+              <option value="HDFC Bank" selected>HDFC Bank</option>
+              <option value="ICICI Bank">ICICI Bank</option>
+              <option value="Axis Bank">Axis Bank</option>
+              <option value="Punjab National Bank">Punjab National Bank (PNB)</option>
+              <option value="Bank of Baroda">Bank of Baroda</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Simulation Result Selector -->
+        <div style="margin-top: 1.75rem; padding: 1rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md);">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #92400e; margin-bottom: 0.5rem;">
+            <i class="fa-solid fa-flask"></i> Simulation Controls:
+          </div>
+          <div style="display: flex; gap: 1.25rem;">
+            <label style="font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+              <input type="radio" name="simulate_action" value="SUCCESS" checked>
+              Simulate Successful Payment
+            </label>
+            <label style="font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; color: var(--danger);">
+              <input type="radio" name="simulate_action" value="FAIL">
+              Simulate Declined / Failure
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="margin-top: 1.75rem;">
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; font-weight: 800;" id="payBtn">
+            <i class="fa-solid fa-lock"></i> Pay ₹{{ booking.total_amount }} & Confirm Booking
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Booking Order Summary -->
+    <div>
+      <div class="card" style="padding: 1.75rem; border-top: 4px solid #046A38;">
+        <span class="badge badge-success" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-hotel"></i> HOTEL RESERVATION</span>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.25rem; color: var(--secondary);">{{ booking.hotel.name }}</h3>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> {{ booking.hotel.city }}, {{ booking.hotel.state }}
+        </div>
+
+        <div style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; margin-bottom: 1.25rem; font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.6rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Booking Ref:</span>
+            <strong style="font-family: monospace; color: var(--primary);">{{ booking.booking_reference }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Room Type:</span>
+            <strong>{{ booking.room.room_type }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Check-in:</span>
+            <strong>{{ booking.check_in_date|date:"d M Y" }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Check-out:</span>
+            <strong>{{ booking.check_out_date|date:"d M Y" }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Stay Duration:</span>
+            <strong>{{ booking.nights }} Night{% if booking.nights > 1 %}s{% endif %} &bull; {{ booking.room_count }} Room</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Guest:</span>
+            <strong>{{ booking.primary_guest_name }} ({{ booking.guest_count }} Pax)</strong>
+          </div>
+        </div>
+
+        <!-- Financial breakdown -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Base Stay Fare:</span>
+            <span>₹{{ booking.base_fare }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">GST & Taxes (12%):</span>
+            <span>₹{{ booking.taxes }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Convenience Fee:</span>
+            <span>₹{{ booking.service_fee }}</span>
+          </div>
+          {% if booking.discount > 0 %}
+            <div style="display: flex; justify-content: space-between; color: #046A38; font-weight: 700;">
+              <span>Promo Discount ({{ booking.promo_code }}):</span>
+              <span>-₹{{ booking.discount }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div style="border-top: 2px solid var(--border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">TOTAL DUE</span>
+          </div>
+          <div style="font-size: 1.75rem; font-weight: 800; color: var(--secondary);">
+            ₹{{ booking.total_amount }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Toggle payment methods
+  const methodRadios = document.querySelectorAll('input[name="payment_method"]');
+  const sections = {
+    'CREDIT_CARD': document.getElementById('section_CREDIT_CARD'),
+    'UPI': document.getElementById('section_UPI'),
+    'NET_BANKING': document.getElementById('section_NET_BANKING')
+  };
+
+  methodRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      Object.keys(sections).forEach(key => {
+        if (sections[key]) {
+          sections[key].style.display = (key === radio.value) ? 'block' : 'none';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

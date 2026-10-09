@@ -1,0 +1,1 @@
+"""Retiring rooms app initialization."""

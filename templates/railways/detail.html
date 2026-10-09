@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ schedule.train.name }} ({{ schedule.train.train_number }}) — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 3rem 1.5rem 5rem 1.5rem;">
+  <a href="{% url 'railways:search' %}" class="btn btn-sm btn-outline mb-3" style="margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Train Search
+  </a>
+
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+      <div>
+        <span class="badge badge-train"><i class="fa-solid fa-train"></i> {{ schedule.train.train_number }}</span>
+        <h1 style="font-size: 1.8rem; margin: 0.4rem 0;">{{ schedule.train.name }}</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          {{ schedule.train.get_train_type_display }} &bull; Total Coaches: {{ schedule.train.total_coaches }}
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge badge-success">Running Daily</span>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">Date: {{ schedule.journey_date }}</div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div class="journey-timeline">
+        <div class="time-box" style="text-align: left;">
+          <div class="time">{{ schedule.departure_time|time:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.source_station.name }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ schedule.source_station.city }}, {{ schedule.source_station.state }}</div>
+        </div>
+
+        <div class="timeline-track">
+          <span class="duration-tag"><i class="fa-regular fa-clock"></i> {{ schedule.formatted_duration }}</span>
+          <div class="track-line"></div>
+        </div>
+
+        <div class="time-box" style="text-align: right;">
+          <div class="time">{{ schedule.arrival_time|time:"H:i" }}</div>
+          <div class="location" style="font-weight: 700;">{{ schedule.destination_station.name }}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">{{ schedule.destination_station.city }}, {{ schedule.destination_station.state }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fare Table -->
+    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--secondary);">Available Travel Classes & Fares</h3>
+    <table class="custom-table" style="margin-bottom: 2rem;">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Code</th>
+          <th>Base Fare</th>
+          <th>Available Seats</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sleeper Class</strong></td>
+          <td><span class="badge badge-neutral">SL</span></td>
+          <td><strong>₹{{ schedule.fare_sleeper }}</strong></td>
+          <td><span style="color: var(--success); font-weight: 600;">{{ schedule.available_seat_count }} seats</span></td>
+          <td>
+            <a href="{% url 'railways:seat_select' schedule_id=schedule.id %}?class=SLEEPER" class="btn btn-sm btn-primary">Select Berths</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>AC 3 Tier</strong></td>
+          <td><span class="badge badge-neutral">3A</span></td>
+          <td><strong>₹{{ schedule.fare_ac3 }}</strong></td>
+          <td><span style="color: var(--success); font-weight: 600;">Available</span></td>
+          <td>
+            <a href="{% url 'railways:seat_select' schedule_id=schedule.id %}?class=AC_3_TIER" class="btn btn-sm btn-primary">Select Berths</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>AC 2 Tier</strong></td>
+          <td><span class="badge badge-neutral">2A</span></td>
+          <td><strong>₹{{ schedule.fare_ac2 }}</strong></td>
+          <td><span style="color: var(--success); font-weight: 600;">Available</span></td>
+          <td>
+            <a href="{% url 'railways:seat_select' schedule_id=schedule.id %}?class=AC_2_TIER" class="btn btn-sm btn-primary">Select Berths</a>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>First Class AC</strong></td>
+          <td><span class="badge badge-neutral">1A</span></td>
+          <td><strong>₹{{ schedule.fare_first_class }}</strong></td>
+          <td><span style="color: var(--success); font-weight: 600;">Available</span></td>
+          <td>
+            <a href="{% url 'railways:seat_select' schedule_id=schedule.id %}?class=FIRST_CLASS" class="btn btn-sm btn-primary">Select Berths</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

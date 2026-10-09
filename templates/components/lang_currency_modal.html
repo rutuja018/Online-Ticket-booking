@@ -1,0 +1,234 @@
+{% load static %}
+<!-- Combined Language & Currency Preferences Modal -->
+<div id="langCurrencyModalBackdrop" class="i18n-modal-backdrop" style="display: none;" onclick="if(event.target === this) closeLangCurrencyModal()">
+  <div class="i18n-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="langCurrModalTitle">
+    <!-- Modal Header -->
+    <div class="i18n-modal-header">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="i18n-modal-header-icon">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+        <div>
+          <h3 id="langCurrModalTitle" style="margin: 0; font-size: 1.25rem; color: var(--secondary); font-weight: 800;">
+            Language & Currency Settings
+          </h3>
+          <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
+            Choose your preferred language and billing currency
+          </p>
+        </div>
+      </div>
+      <button type="button" class="i18n-modal-close-btn" onclick="closeLangCurrencyModal()" title="Close (Esc)">
+        &times;
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="i18n-modal-body">
+      <!-- Section 1: Language Selection -->
+      <div class="i18n-section">
+        <div class="i18n-section-title">
+          <i class="fa-solid fa-language" style="color: #FF671F;"></i>
+          <span>1. Select Preferred Language</span>
+        </div>
+        
+        <div class="i18n-grid">
+          <button type="button" class="i18n-card-btn active-i18n" data-set-lang="en">
+            <span class="i18n-flag">🇬🇧</span>
+            <div class="i18n-card-text">
+              <strong>English</strong>
+              <small>English</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="hi">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>हिन्दी</strong>
+              <small>Hindi</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="mr">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>मराठी</strong>
+              <small>Marathi</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="ta">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>தமிழ்</strong>
+              <small>Tamil</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="te">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>తెలుగు</strong>
+              <small>Telugu</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="bn">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>বাংলা</strong>
+              <small>Bengali</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="gu">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>ગુજરાતી</strong>
+              <small>Gujarati</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="kn">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>ಕನ್ನಡ</strong>
+              <small>Kannada</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="es">
+            <span class="i18n-flag">🇪🇸</span>
+            <div class="i18n-card-text">
+              <strong>Español</strong>
+              <small>Spanish</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="fr">
+            <span class="i18n-flag">🇫🇷</span>
+            <div class="i18n-card-text">
+              <strong>Français</strong>
+              <small>French</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="ar">
+            <span class="i18n-flag">🇸🇦</span>
+            <div class="i18n-card-text">
+              <strong>العربية</strong>
+              <small>Arabic</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-lang="de">
+            <span class="i18n-flag">🇩🇪</span>
+            <div class="i18n-card-text">
+              <strong>Deutsch</strong>
+              <small>German</small>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 2: Currency Selection -->
+      <div class="i18n-section" style="margin-top: 1.75rem;">
+        <div class="i18n-section-title">
+          <i class="fa-solid fa-coins" style="color: #F59E0B;"></i>
+          <span>2. Select Display Currency</span>
+        </div>
+
+        <div class="i18n-grid">
+          <button type="button" class="i18n-card-btn active-i18n" data-set-currency="INR">
+            <span class="i18n-flag">🇮🇳</span>
+            <div class="i18n-card-text">
+              <strong>INR (₹)</strong>
+              <small>Indian Rupee</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="USD">
+            <span class="i18n-flag">🇺🇸</span>
+            <div class="i18n-card-text">
+              <strong>USD ($)</strong>
+              <small>US Dollar</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="EUR">
+            <span class="i18n-flag">🇪🇺</span>
+            <div class="i18n-card-text">
+              <strong>EUR (€)</strong>
+              <small>Euro</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="GBP">
+            <span class="i18n-flag">🇬🇧</span>
+            <div class="i18n-card-text">
+              <strong>GBP (£)</strong>
+              <small>British Pound</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="AED">
+            <span class="i18n-flag">🇦🇪</span>
+            <div class="i18n-card-text">
+              <strong>AED (AED)</strong>
+              <small>UAE Dirham</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="SGD">
+            <span class="i18n-flag">🇸🇬</span>
+            <div class="i18n-card-text">
+              <strong>SGD (S$)</strong>
+              <small>Singapore Dollar</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="CAD">
+            <span class="i18n-flag">🇨🇦</span>
+            <div class="i18n-card-text">
+              <strong>CAD (CA$)</strong>
+              <small>Canadian Dollar</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="AUD">
+            <span class="i18n-flag">🇦🇺</span>
+            <div class="i18n-card-text">
+              <strong>AUD (A$)</strong>
+              <small>Australian Dollar</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="JPY">
+            <span class="i18n-flag">🇯🇵</span>
+            <div class="i18n-card-text">
+              <strong>JPY (¥)</strong>
+              <small>Japanese Yen</small>
+            </div>
+          </button>
+
+          <button type="button" class="i18n-card-btn" data-set-currency="SAR">
+            <span class="i18n-flag">🇸🇦</span>
+            <div class="i18n-card-text">
+              <strong>SAR (SAR)</strong>
+              <small>Saudi Riyal</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="i18n-modal-footer">
+      <div style="font-size: 0.85rem; color: var(--secondary);">
+        Active: <strong id="modalActiveSummary" style="color: var(--primary);">🇬🇧 English • 🇮🇳 INR (₹)</strong>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" onclick="closeLangCurrencyModal()" style="font-weight: 700; padding: 0.5rem 1.25rem;">
+        <i class="fa-solid fa-check"></i> Apply & Done
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}E-Catering Menu — {{ restaurant.name|default:"Train Food Delivery" }} — RailAway{% endblock %}
+
+{% block content %}
+<!-- Menu Header -->
+<section style="background: linear-gradient(135deg, #0A1931 0%, #000080 60%, #1E3A8A 100%); color: #fff; padding: 3rem 1rem 2.5rem 1rem;">
+  <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <span class="badge" style="background: #FF671F; color: #fff; font-weight: 800;">
+          <i class="fa-solid fa-train"></i> STATION KITCHEN
+        </span>
+        {% if station %}
+        <span class="badge" style="background: rgba(255,255,255,0.2); color: #fff;">
+          {{ station.name }} ({{ station.code }})
+        </span>
+        {% endif %}
+      </div>
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem;">
+        {{ restaurant.name|default:"IRCTC Food Plaza Menu" }}
+      </h1>
+      <p style="font-size: 0.95rem; opacity: 0.85; margin: 0;">
+        {{ restaurant.cuisine|default:"North Indian, Thalis, Biryanis, Street Snacks" }} &bull; ★ {{ restaurant.rating|default:"4.8" }}
+      </p>
+    </div>
+
+    <!-- PNR and Berth Badge if linked -->
+    {% if pnr_param %}
+    <div style="background: rgba(255,255,255,0.12); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.25); text-align: right;">
+      <div style="font-size: 0.75rem; text-transform: uppercase; color: #FF9933; font-weight: 700;">Delivering to PNR</div>
+      <div style="font-family: monospace; font-size: 1.15rem; font-weight: 800; color: #fff;">{{ pnr_param }}</div>
+      {% if coach_param and seat_param %}
+      <div style="font-size: 0.8rem; opacity: 0.9;">Coach <strong>{{ coach_param }}</strong>, Berth <strong>{{ seat_param }}</strong></div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Menu & Live Cart Layout -->
+<div class="container" style="margin-top: 2.5rem; margin-bottom: 5rem;">
+  <!-- Dietary & Category Filter Pills -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem;">
+    <!-- Dietary Toggle Pills -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <a href="?diet=ALL{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}{% if restaurant %}&restaurant_id={{ restaurant.id }}{% endif %}" class="btn btn-sm {% if current_diet == 'ALL' %}btn-primary{% else %}btn-outline{% endif %}">
+        All Items
+      </a>
+      <a href="?diet=VEG{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}{% if restaurant %}&restaurant_id={{ restaurant.id }}{% endif %}" class="btn btn-sm {% if current_diet == 'VEG' %}btn-primary{% else %}btn-outline{% endif %}" style="{% if current_diet == 'VEG' %}background: #046A38; border-color: #046A38;{% endif %}">
+        <i class="fa-solid fa-circle" style="color: #10B981; font-size: 0.6rem;"></i> Pure Veg
+      </a>
+      <a href="?diet=NON_VEG{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}{% if restaurant %}&restaurant_id={{ restaurant.id }}{% endif %}" class="btn btn-sm {% if current_diet == 'NON_VEG' %}btn-primary{% else %}btn-outline{% endif %}" style="{% if current_diet == 'NON_VEG' %}background: #DC2626; border-color: #DC2626;{% endif %}">
+        <i class="fa-solid fa-circle" style="color: #EF4444; font-size: 0.6rem;"></i> Non-Veg
+      </a>
+      <a href="?diet=JAIN{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}{% if restaurant %}&restaurant_id={{ restaurant.id }}{% endif %}" class="btn btn-sm {% if current_diet == 'JAIN' %}btn-primary{% else %}btn-outline{% endif %}" style="{% if current_diet == 'JAIN' %}background: #D97706; border-color: #D97706;{% endif %}">
+        <i class="fa-solid fa-seedling"></i> Pure Jain
+      </a>
+    </div>
+
+    <!-- Category Filters -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}{% if pnr_param %}&pnr={{ pnr_param }}{% endif %}{% if restaurant %}&restaurant_id={{ restaurant.id }}{% endif %}" class="badge" style="padding: 0.4rem 0.75rem; text-decoration: none; {% if current_category == cat.slug %}background: var(--secondary); color: #fff;{% else %}background: var(--bg-subtle); color: var(--secondary);{% endif %} border: 1px solid var(--border);">
+          {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 2rem; align-items: flex-start;">
+    <!-- Menu Dishes Catalog -->
+    <div>
+      {% if items %}
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        {% for item in items %}
+        <div class="card" style="padding: 1.25rem; display: flex; justify-content: space-between; gap: 1.5rem; align-items: center; border-left: 4px solid {% if item.is_veg %}#046A38{% else %}#DC2626{% endif %};">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+              {% if item.is_veg %}
+                <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                  <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> VEG
+                </span>
+              {% else %}
+                <span class="badge badge-danger" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+                  <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> NON-VEG
+                </span>
+              {% endif %}
+              {% if item.is_jain %}
+                <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 0.7rem;">JAIN</span>
+              {% endif %}
+              {% if item.is_bestseller %}
+                <span class="badge" style="background: #FFF7ED; color: #C2410C; font-size: 0.7rem; font-weight: 700;">★ BESTSELLER</span>
+              {% endif %}
+            </div>
+
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 0.3rem;">{{ item.name }}</h3>
+            <div style="font-size: 1.15rem; font-weight: 800; color: #FF671F; margin-bottom: 0.4rem;">
+              ₹{{ item.price }}
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+              {{ item.description|default:"Prepared fresh upon train schedule confirmation." }}
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 130px;">
+            <div style="width: 110px; height: 85px; border-radius: var(--radius-sm); overflow: hidden;">
+              <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <button type="button" class="btn btn-sm btn-primary" onclick="addToCart({{ item.id }})" style="width: 100%; background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%); font-weight: 700;">
+              <i class="fa-solid fa-plus"></i> ADD
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"><i class="fa-solid fa-utensils"></i></div>
+        <h3 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 0.5rem;">No dishes found matching filter</h3>
+        <a href="{% url 'food_catering:menu' %}" class="btn btn-primary">View All Dishes</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Live Cart Drawer -->
+    <div style="position: sticky; top: 100px;">
+      <div class="card" style="padding: 1.75rem; border-top: 5px solid #FF671F; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+          <h3 style="font-size: 1.25rem; color: var(--secondary); margin: 0;">
+            <i class="fa-solid fa-basket-shopping" style="color: #FF671F;"></i> Your Meal Cart
+          </h3>
+          <span class="badge badge-primary" id="cartCountBadge">{{ cart_count }} items</span>
+        </div>
+
+        <!-- Items Container -->
+        <div id="cartItemsContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem;">
+          {% if cart_items %}
+            {% for ci in cart_items %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.9rem;">
+              <div style="flex: 1; padding-right: 0.5rem;">
+                <div style="font-weight: 700; color: var(--secondary);">{{ ci.item.name }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">₹{{ ci.item.price }} x {{ ci.quantity }}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <button type="button" class="btn btn-sm btn-outline" onclick="updateCartItem({{ ci.item.id }}, 'remove')" style="padding: 0.1rem 0.5rem;">-</button>
+                <span style="font-weight: 700;">{{ ci.quantity }}</span>
+                <button type="button" class="btn btn-sm btn-outline" onclick="updateCartItem({{ ci.item.id }}, 'add')" style="padding: 0.1rem 0.5rem;">+</button>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0; font-size: 0.9rem;">
+              Your meal tray is empty.<br>Add delicious thalis and snacks!
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Cart Financials -->
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.35rem;">
+            <span>Subtotal:</span>
+            <strong id="cartSubtotal">₹{{ cart_total }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+            <span>GST & Packaging (5%):</span>
+            <span>Calculated at checkout</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #046A38; font-weight: 600;">
+            <span>Delivery to Berth:</span>
+            <span>FREE above ₹200</span>
+          </div>
+        </div>
+
+        <!-- Checkout Action Button -->
+        <a href="{% url 'food_catering:checkout' %}{% if pnr_param %}?pnr={{ pnr_param }}{% if coach_param %}&coach={{ coach_param }}{% endif %}{% if seat_param %}&seat={{ seat_param }}{% endif %}{% endif %}" class="btn btn-primary" style="width: 100%; height: 48px; background: linear-gradient(135deg, #FF671F 0%, #FF8F3D 100%); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" id="checkoutBtn">
+          <span>Proceed to Seat Delivery</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function addToCart(itemId) {
+    updateCartItem(itemId, 'add');
+  }
+
+  function updateCartItem(itemId, action) {
+    fetch('/food/api/cart/update/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        item_id: itemId,
+        action: action,
+        quantity: 1,
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('cartCountBadge').textContent = `${data.cart_count} items`;
+        document.getElementById('cartSubtotal').textContent = `₹${data.cart_total.toFixed(2)}`;
+        
+        // Re-render cart items
+        const container = document.getElementById('cartItemsContainer');
+        if (data.items.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0; font-size: 0.9rem;">Your meal tray is empty.<br>Add delicious thalis and snacks!</div>';
+        } else {
+          let html = '';
+          data.items.forEach(ci => {
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.9rem;">
+                <div style="flex: 1; padding-right: 0.5rem;">
+                  <div style="font-weight: 700; color: var(--secondary);">${ci.name}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">₹${ci.price} x ${ci.quantity}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-sm btn-outline" onclick="updateCartItem(${ci.id}, 'remove')" style="padding: 0.1rem 0.5rem;">-</button>
+                  <span style="font-weight: 700;">${ci.quantity}</span>
+                  <button type="button" class="btn btn-sm btn-outline" onclick="updateCartItem(${ci.id}, 'add')" style="padding: 0.1rem 0.5rem;">+</button>
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        }
+      }
+    })
+    .catch(err => console.error(err));
+  }
+</script>
+{% endblock %}

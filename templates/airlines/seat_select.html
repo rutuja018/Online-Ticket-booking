@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Select Aircraft Seats — {{ schedule.flight.flight_number }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.5rem 5rem 1.5rem;">
+  <!-- Flight Header Summary -->
+  <div class="card" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, #0f172a, #0369a1); color: #fff;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span class="badge" style="background: rgba(255,255,255,0.2); color: #fff; margin-bottom: 0.4rem;">
+          <i class="fa-solid fa-plane"></i> {{ schedule.flight.airline.name }} &bull; {{ schedule.flight.flight_number }} &bull; {{ cabin_class }}
+        </span>
+        <h2 style="color: #fff; font-size: 1.6rem; margin-bottom: 0.2rem;">
+          {{ schedule.origin_airport.city }} ({{ schedule.origin_airport.code }}) &rarr; {{ schedule.destination_airport.city }} ({{ schedule.destination_airport.code }})
+        </h2>
+        <div style="font-size: 0.9rem; color: #cbd5e1;">
+          Departure: {{ schedule.departure_datetime|date:"d M Y, H:i" }} &bull; Aircraft: {{ schedule.flight.aircraft.model_name }}
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 0.85rem; color: #93c5fd;">Fare Per Seat</span>
+        <div style="font-size: 1.75rem; font-weight: 800; color: #fff;">₹{{ fare_per_seat }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="seat-legend">
+    <div class="legend-item">
+      <div class="legend-box available"></div>
+      <span>Available Seat</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box selected"></div>
+      <span>Your Selected Seat</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-box occupied"></div>
+      <span>Occupied Seat</span>
+    </div>
+  </div>
+
+  <form method="POST" action="{% url 'bookings:create' %}" id="flightBookingForm">
+    {% csrf_token %}
+    <input type="hidden" name="transport_type" id="transportTypeInput" value="FLIGHT">
+    <input type="hidden" name="schedule_id" value="{{ schedule.id }}">
+    <input type="hidden" name="travel_class" value="{{ cabin_class }}">
+    <input type="hidden" name="fare_per_seat" id="farePerSeatInput" value="{{ fare_per_seat }}">
+    <input type="hidden" name="selected_seats" id="selectedSeatsInput" value="">
+
+    <div class="seat-booking-layout">
+      <!-- Left Column: Fuselage Aircraft Cabin Layout + Passenger Details -->
+      <div>
+        <div class="seat-map-wrapper mb-4" style="margin-bottom: 2rem;">
+          <div class="coach-header">
+            <h3 style="font-size: 1.2rem; color: var(--secondary);">
+              <i class="fa-solid fa-plane" style="color: #0284c7;"></i> Aircraft Cabin Seat Map ({{ cabin_class }})
+            </h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Click seats to select (Max 6)</span>
+          </div>
+
+          <!-- Fuselage Container -->
+          <div class="fuselage-container">
+            <div class="cockpit-nose">
+              <i class="fa-solid fa-angles-up"></i> Cockpit Front
+            </div>
+
+            <!-- Cabin Grid -->
+            <div class="flight-cabin-grid">
+              <!-- Seat Row Header Letters -->
+              <div class="flight-row" style="padding-bottom: 0.5rem; border-bottom: 1.5px dashed var(--border); font-weight: 800; color: var(--text-muted); font-size: 0.8rem;">
+                <div class="flight-row-num">#</div>
+                <div class="flight-seat-group">
+                  {% if cabin_class == 'FIRST_CLASS' %}
+                    <div style="width: 38px; text-align: center;">A</div>
+                    <div style="width: 38px; text-align: center;">B</div>
+                  {% elif cabin_class == 'BUSINESS' %}
+                    <div style="width: 38px; text-align: center;">A</div>
+                    <div style="width: 38px; text-align: center;">C</div>
+                  {% else %}
+                    <div style="width: 38px; text-align: center;">A</div>
+                    <div style="width: 38px; text-align: center;">B</div>
+                    <div style="width: 38px; text-align: center;">C</div>
+                  {% endif %}
+                </div>
+                <div class="aisle-gap"><i class="fa-solid fa-arrows-up-down"></i></div>
+                <div class="flight-seat-group">
+                  {% if cabin_class == 'FIRST_CLASS' %}
+                    <div style="width: 38px; text-align: center;">E</div>
+                    <div style="width: 38px; text-align: center;">F</div>
+                  {% elif cabin_class == 'BUSINESS' %}
+                    <div style="width: 38px; text-align: center;">D</div>
+                    <div style="width: 38px; text-align: center;">F</div>
+                  {% else %}
+                    <div style="width: 38px; text-align: center;">D</div>
+                    <div style="width: 38px; text-align: center;">E</div>
+                    <div style="width: 38px; text-align: center;">F</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% regroup seats by row_number as row_list %}
+              {% for row in row_list %}
+                <div class="flight-row">
+                  <div class="flight-row-num">{{ row.grouper }}</div>
+
+                  <!-- Left 3 seats (A, B, C) -->
+                  <div class="flight-seat-group">
+                    {% for seat in row.list %}
+                      {% if seat.column_letter in 'ABC' %}
+                        <button type="button"
+                                class="flight-seat-btn {% if seat.is_booked %}occupied{% endif %}"
+                                data-seat-id="{{ seat.seat_number }}"
+                                data-seat-number="{{ seat.seat_number }}"
+                                title="Seat {{ seat.seat_number }} ({{ seat.get_seat_type_display }})">
+                          {{ seat.seat_number }}
+                        </button>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+
+                  <div class="aisle-gap"></div>
+
+                  <!-- Right 3 seats (D, E, F) -->
+                  <div class="flight-seat-group">
+                    {% for seat in row.list %}
+                      {% if seat.column_letter in 'DEF' %}
+                        <button type="button"
+                                class="flight-seat-btn {% if seat.is_booked %}occupied{% endif %}"
+                                data-seat-id="{{ seat.seat_number }}"
+                                data-seat-number="{{ seat.seat_number }}"
+                                title="Seat {{ seat.seat_number }} ({{ seat.get_seat_type_display }})">
+                          {{ seat.seat_number }}
+                        </button>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Passenger Details Section -->
+        <div class="card" style="padding: 2rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--secondary);">
+            <i class="fa-solid fa-address-card" style="color: #0284c7;"></i> Passenger Information (As per Passport/ID)
+          </h3>
+          <div id="passengerFormsContainer">
+            <div style="text-align: center; padding: 2.5rem; background: var(--bg-subtle); border-radius: var(--radius-lg); border: 1.5px dashed var(--border);">
+              <i class="fa-solid fa-users" style="font-size: 2.2rem; color: var(--text-light); margin-bottom: 0.5rem;"></i>
+              <p style="color: var(--text-muted); font-weight: 500;">Select seats on the fuselage map above to enter traveler details.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sticky Fare Breakdown -->
+      <div>
+        <div class="booking-summary-sidebar">
+          <div class="summary-header">
+            <h3 style="font-size: 1.25rem; color: var(--secondary);">Flight Fare Summary</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Includes Aviation Security Fees & Taxes</p>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-size: 0.85rem;">Selected Flight Seats (<span id="selectedCountDisplay">0</span>)</label>
+            <div class="selected-seats-badge-container" id="selectedSeatChips">
+              <span class="text-muted" style="font-size: 0.85rem;">No seats selected yet</span>
+            </div>
+          </div>
+
+          <div class="price-item">
+            <span>Airfare Base</span>
+            <strong id="baseFareDisplay">₹0.00</strong>
+          </div>
+          <div class="price-item">
+            <span>Airport GST / Fuel Surcharge (12%)</span>
+            <strong id="taxDisplay">₹0.00</strong>
+          </div>
+          <div class="price-item">
+            <span>User Development Fee</span>
+            <strong>₹49.00</strong>
+          </div>
+
+          <div style="margin: 1.25rem 0;">
+            <label class="form-label" style="font-size: 0.8rem;">Promo Code</label>
+            <input type="text" name="promo_code" class="form-input" placeholder="e.g. TRAVELNOW" style="text-transform: uppercase;">
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Use <strong>TRAVELNOW</strong> for ₹100 off.</small>
+          </div>
+
+          <div class="price-item total">
+            <span>Total Payable</span>
+            <span id="totalFareDisplay" style="color: #0284c7;">₹0.00</span>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; background: #0284c7;" id="proceedToPayBtn" disabled>
+              <i class="fa-solid fa-lock"></i> Proceed to Checkout
+            </button>
+            <p style="font-size: 0.75rem; text-align: center; color: var(--text-muted); margin-top: 0.75rem;">
+              <i class="fa-solid fa-shield-check"></i> Instant E-Ticket & Boarding Pass Confirmation
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/seat_selection.js' %}"></script>
+{% endblock %}

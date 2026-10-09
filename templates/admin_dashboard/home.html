@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Management Portal — RailAway{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+  <!-- Admin Header -->
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span class="badge badge-primary" style="font-size: 0.85rem;"><i class="fa-solid fa-shield-halved"></i> MASTER CONTROL</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Admin Portal</span>
+      </div>
+      <h1 style="margin-top: 0.25rem;">Analytics & Platform Overview</h1>
+      <p>Real-time booking metrics, revenue analytics, and multimodal transport & hotel inventory controls</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/admin/" target="_blank" class="btn btn-outline" style="font-weight: 700;">
+        <i class="fa-solid fa-database"></i> Django Standard Admin
+      </a>
+      <a href="{% url 'admin_dashboard:manage_bookings' %}" class="btn btn-primary">
+        <i class="fa-solid fa-list-check"></i> Manage Bookings
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Performance Indicators (KPIs) -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon primary">
+        <i class="fa-solid fa-indian-rupee-sign"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">₹{{ total_revenue }}</span>
+        <span class="stat-label">Gross Revenue</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <i class="fa-solid fa-money-bill-trend-up"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">₹{{ net_revenue }}</span>
+        <span class="stat-label">Net (Post-Refunds)</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon cyan">
+        <i class="fa-solid fa-ticket"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total_bookings }}</span>
+        <span class="stat-label">Total Reservations</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total_users }}</span>
+        <span class="stat-label">Registered Customers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transport & Hotel Distribution Cards -->
+  <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--secondary);">Travel & Accommodation Breakdown</h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    <!-- Trains Metric Card -->
+    <div class="card" style="border-top: 4px solid var(--primary);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="badge badge-train"><i class="fa-solid fa-train"></i> Railway Division</span>
+        <a href="{% url 'admin_dashboard:manage_trains' %}" style="font-size: 0.8rem; font-weight: 700;">Manage &rarr;</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--secondary);">{{ train_bookings_count }} Bookings</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">{{ total_trains }} Trains &bull; {{ total_train_schedules }} Schedules</span>
+        </div>
+        <div style="text-align: right;">
+          <strong style="font-size: 1.1rem; color: var(--primary);">₹{{ train_revenue }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flights Metric Card -->
+    <div class="card" style="border-top: 4px solid #0284c7;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="badge badge-flight"><i class="fa-solid fa-plane"></i> Aviation Division</span>
+        <a href="{% url 'admin_dashboard:manage_flights' %}" style="font-size: 0.8rem; font-weight: 700;">Manage &rarr;</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--secondary);">{{ flight_bookings_count }} Bookings</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">{{ total_flights }} Flights &bull; {{ total_flight_schedules }} Schedules</span>
+        </div>
+        <div style="text-align: right;">
+          <strong style="font-size: 1.1rem; color: #0284c7;">₹{{ flight_revenue }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buses Metric Card -->
+    <div class="card" style="border-top: 4px solid #046A38;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="badge badge-bus"><i class="fa-solid fa-bus"></i> Bus Division</span>
+        <a href="{% url 'admin_dashboard:manage_buses' %}" style="font-size: 0.8rem; font-weight: 700;">Manage &rarr;</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--secondary);">{{ bus_bookings_count }} Bookings</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">{{ total_buses }} Buses &bull; {{ total_bus_schedules }} Schedules</span>
+        </div>
+        <div style="text-align: right;">
+          <strong style="font-size: 1.1rem; color: #046A38;">₹{{ bus_revenue }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hotels Metric Card -->
+    <div class="card" style="border-top: 4px solid #9333ea;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="badge" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;"><i class="fa-solid fa-hotel"></i> Hotel Division</span>
+        <a href="{% url 'admin_dashboard:manage_hotels' %}" style="font-size: 0.8rem; font-weight: 700; color: #7e22ce;">Manage &rarr;</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--secondary);">{{ hotel_bookings_count }} Stays</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">{{ total_hotels }} Hotels &bull; {{ total_rooms }} Room Types</span>
+        </div>
+        <div style="text-align: right;">
+          <strong style="font-size: 1.1rem; color: #7e22ce;">₹{{ hotel_revenue }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Navigation Shortcuts -->
+  <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--secondary);">Inventory & Data Control</h3>
+  <div class="quick-actions-bar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
+    <a href="{% url 'admin_dashboard:manage_trains' %}" class="action-card">
+      <i class="fa-solid fa-train" style="color: #FF671F;"></i>
+      <span>Trains & Schedules</span>
+    </a>
+    <a href="{% url 'admin_dashboard:manage_flights' %}" class="action-card">
+      <i class="fa-solid fa-plane" style="color: #1E3A8A;"></i>
+      <span>Flights & Schedules</span>
+    </a>
+    <a href="{% url 'admin_dashboard:manage_buses' %}" class="action-card">
+      <i class="fa-solid fa-bus" style="color: #046A38;"></i>
+      <span>Buses & Schedules</span>
+    </a>
+    <a href="{% url 'admin_dashboard:manage_hotels' %}" class="action-card">
+      <i class="fa-solid fa-hotel" style="color: #9333ea;"></i>
+      <span>Hotels & Rooms</span>
+    </a>
+    <a href="{% url 'admin_dashboard:manage_users' %}" class="action-card">
+      <i class="fa-solid fa-users-gear" style="color: var(--secondary);"></i>
+      <span>Registered Users</span>
+    </a>
+  </div>
+
+  <!-- Recent System Bookings Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="card-header" style="padding: 1.25rem 1.5rem; margin-bottom: 0;">
+      <h3 class="card-title">Live Multimodal Reservations Feed</h3>
+      <a href="{% url 'admin_dashboard:manage_bookings' %}" style="font-size: 0.9rem; font-weight: 700;">View All Bookings &rarr;</a>
+    </div>
+
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>PNR / Ref</th>
+          <th>Customer</th>
+          <th>Mode</th>
+          <th>Service / Property</th>
+          <th>Amount</th>
+          <th>Booking Status</th>
+          <th>Payment</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in recent_bookings %}
+        <tr>
+          <td><strong style="font-family: monospace; color: var(--primary);">{{ b.pnr }}</strong></td>
+          <td>{{ b.user.username }}</td>
+          <td>
+            <span class="badge {% if b.transport_type == 'TRAIN' %}badge-train{% elif b.transport_type == 'FLIGHT' %}badge-flight{% else %}badge-bus{% endif %}">
+              {{ b.get_transport_type_display }}
+            </span>
+          </td>
+          <td>{{ b.service_title }}</td>
+          <td><strong>₹{{ b.total_amount }}</strong></td>
+          <td>
+            {% if b.booking_status == 'CONFIRMED' %}
+              <span class="badge badge-success">Confirmed</span>
+            {% elif b.booking_status == 'CANCELLED' or b.booking_status == 'REFUNDED' %}
+              <span class="badge badge-danger">Cancelled</span>
+            {% else %}
+              <span class="badge badge-warning">{{ b.booking_status }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-neutral">{{ b.payment_status }}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ b.created_at|timesince }} ago</td>
+        </tr>
+        {% endfor %}
+
+        {% for hb in recent_hotel_bookings %}
+        <tr>
+          <td><strong style="font-family: monospace; color: #7e22ce;">{{ hb.booking_reference }}</strong></td>
+          <td>{{ hb.user.username }}</td>
+          <td>
+            <span class="badge" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe;">
+              <i class="fa-solid fa-hotel"></i> Hotel
+            </span>
+          </td>
+          <td>{{ hb.hotel.name }} ({{ hb.room.room_type }})</td>
+          <td><strong>₹{{ hb.total_amount }}</strong></td>
+          <td>
+            {% if hb.booking_status == 'CONFIRMED' %}
+              <span class="badge badge-success">Confirmed</span>
+            {% elif hb.booking_status == 'CANCELLED' or hb.booking_status == 'REFUNDED' %}
+              <span class="badge badge-danger">Cancelled</span>
+            {% else %}
+              <span class="badge badge-warning">{{ hb.booking_status }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-neutral">{{ hb.payment_status }}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ hb.created_at|timesince }} ago</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

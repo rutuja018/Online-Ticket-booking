@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Booking — {{ booking.pnr }} — RailAway{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding: 3rem 1.5rem 5rem 1.5rem;">
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;">
+      <div>
+        <span class="badge badge-warning">Review Your Reservation</span>
+        <h2 style="font-size: 1.75rem; color: var(--secondary); margin-top: 0.25rem;">Booking Summary</h2>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Temporary Reference</span>
+        <div style="font-family: monospace; font-size: 1.3rem; font-weight: 800; color: var(--primary);">{{ booking.pnr }}</div>
+      </div>
+    </div>
+
+    <!-- Service Details Grid -->
+    <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <h4 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.5rem;">{{ booking.service_title }}</h4>
+      <div style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <strong>{{ booking.source_location }}</strong> &rarr; <strong>{{ booking.destination_location }}</strong>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Journey Date</span>
+          <div style="font-weight: 700;">{{ booking.journey_date }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Departure Time</span>
+          <div style="font-weight: 700;">{{ booking.departure_time }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Travel Class</span>
+          <div style="font-weight: 700;">{{ booking.travel_class }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Allocated Seats</span>
+          <div style="font-weight: 700; color: var(--primary);">{{ booking.allocated_seats }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Passenger Table -->
+    <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">Passenger Information</h3>
+    <table class="custom-table" style="margin-bottom: 2rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Age / Gender</th>
+          <th>ID Type</th>
+          <th>ID Number</th>
+          <th>Seat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in booking.passengers.all %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td><strong>{{ p.full_name }}</strong></td>
+          <td>{{ p.age }} Yrs / {{ p.get_gender_display }}</td>
+          <td><span class="badge badge-neutral">{{ p.get_id_type_display }}</span></td>
+          <td>{{ p.masked_id }}</td>
+          <td><span class="badge badge-primary">{{ p.seat_number }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Pricing Breakdown -->
+    <div style="background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem;">
+      <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--secondary);">Fare Calculation</h4>
+      <div class="price-item">
+        <span>Base Ticket Fare</span>
+        <strong>₹{{ booking.base_fare }}</strong>
+      </div>
+      <div class="price-item">
+        <span>Applicable Taxes & Surcharges</span>
+        <strong>₹{{ booking.taxes }}</strong>
+      </div>
+      <div class="price-item">
+        <span>Platform Convenience Fee</span>
+        <strong>₹{{ booking.service_fee }}</strong>
+      </div>
+      {% if booking.discount > 0 %}
+      <div class="price-item" style="color: var(--success);">
+        <span>Promotional Discount Applied</span>
+        <strong>-₹{{ booking.discount }}</strong>
+      </div>
+      {% endif %}
+      <div class="price-item total">
+        <span>Final Payable Amount</span>
+        <span style="color: var(--primary);">₹{{ booking.total_amount }}</span>
+      </div>
+    </div>
+
+    <!-- Cancellation Policy Assurance Note -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <i class="fa-solid fa-shield-check" style="color: #16a34a; font-size: 1.4rem;"></i>
+        <div style="font-size: 0.88rem; color: #166534;">
+          <strong>Instant Refund Guarantee:</strong> Cancellations permitted up to 4 hours before departure with automated refund.
+        </div>
+      </div>
+      <a href="{% url 'core:cancellation_policy' %}" target="_blank" style="font-size: 0.85rem; font-weight: 700; color: #15803d; text-decoration: underline;">
+        Read Refund Policy &rarr;
+      </a>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="{% url 'core:home' %}" class="btn btn-outline">Cancel & Return</a>
+      <a href="{% url 'payments:process_payment' booking_id=booking.id %}" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-credit-card"></i> Proceed to Demo Payment Gateway &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
