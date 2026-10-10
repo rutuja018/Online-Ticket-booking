@@ -3,6 +3,36 @@
 
 {% block title %}RailAway — Travel Anywhere. Book Everything.{% endblock %}
 
+{% block extra_css %}
+<style>
+  .hero-contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0.35rem 0 1.1rem;
+    padding: 0.72rem 1.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-decoration: none;
+    background: linear-gradient(135deg, #0a8f4a 0%, #046A38 55%, #034d28 100%);
+    box-shadow: 0 10px 24px rgba(4, 106, 56, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  }
+  .hero-contact-btn:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: 0 14px 28px rgba(4, 106, 56, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  .hero-contact-btn:active {
+    transform: translateY(0);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section  -->
 <section class="hero-section">
@@ -13,6 +43,9 @@
     <h1 class="hero-title">
       Book your Ticket Anywhere. <span class="tricolor-text">Book Everything.</span>
     </h1>
+    <a href="{% url 'core:contact' %}" class="hero-contact-btn" id="heroContactUsBtn">
+      <i class="fa-solid fa-headset"></i> Contact Us
+    </a>
     <p class="hero-subtitle">
       Search, select berths, seats & luxury hotel rooms across Railway, Airline, Luxury Bus, and Hotel inventories with instant confirmation.
     </p>
