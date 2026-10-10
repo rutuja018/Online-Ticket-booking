@@ -1,8 +1,11 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.db.models import Count, Min, Q
 from django.utils import timezone
+
+from .forms import ContactInquiryForm
 
 from railways.models import RailwayStation, TrainSchedule
 from airlines.models import Airport, FlightSchedule
@@ -82,7 +85,26 @@ def about(request):
 
 
 def contact(request):
-    return render(request, 'core/contact.html')
+    initial = {}
+    if request.user.is_authenticated:
+        full_name = request.user.get_full_name().strip()
+        initial['name'] = full_name or request.user.username
+        initial['email'] = request.user.email
+
+    if request.method == 'POST':
+        form = ContactInquiryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Thanks for reaching out. Our 24x7 travel desk will get back to you shortly.',
+            )
+            return redirect('core:contact')
+        messages.error(request, 'Please correct the errors in the contact form below.')
+    else:
+        form = ContactInquiryForm(initial=initial)
+
+    return render(request, 'core/contact.html', {'form': form})
 
 
 def faq(request):

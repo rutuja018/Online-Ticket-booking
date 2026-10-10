@@ -1,34 +1,119 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Contact & 24x7 Support — RailAway{% endblock %}
+{% block title %}Contact Us — RailAway{% endblock %}
+
+{% block extra_css %}
+<style>
+  .contact-page {
+    padding: 3.5rem 1.5rem 5.5rem;
+  }
+  .contact-layout {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+  .contact-card {
+    background: #fff;
+    border-radius: 22px;
+    padding: 2.4rem 2.2rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    border: 1px solid var(--border);
+  }
+  .contact-submit {
+    width: 100%;
+    height: 50px;
+    font-weight: 700;
+    border: none;
+    color: #fff;
+    background: linear-gradient(135deg, #0a8f4a 0%, #046A38 55%, #034d28 100%);
+    box-shadow: 0 10px 22px rgba(4, 106, 56, 0.32);
+  }
+  .contact-submit:hover {
+    filter: brightness(1.06);
+    color: #fff;
+  }
+  .support-tile {
+    background: var(--bg-subtle);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+  @media (max-width: 860px) {
+    .contact-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 860px; padding: 4rem 1.5rem 6rem 1.5rem;">
-  <div class="card" style="padding: 3rem;">
-    <span class="badge badge-primary" style="margin-bottom: 0.5rem;">GET IN TOUCH</span>
-    <h1 style="font-size: 2.2rem; color: var(--secondary); margin-bottom: 1rem;">24x7 Traveler Support</h1>
-    <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">
-      Need assistance with your PNR, seat selection, or cancellation? Reach out to our specialized travel desk.
-    </p>
+<div class="contact-page">
+  <div class="contact-layout">
+    <div class="contact-card">
+      <span class="badge badge-primary" style="margin-bottom: 0.65rem;">GET IN TOUCH</span>
+      <h1 style="font-size: 2rem; color: var(--secondary); margin-bottom: 0.5rem;">Contact Us</h1>
+      <p style="color: var(--text-muted); margin-bottom: 1.75rem;">
+        Send a message to our travel desk. We typically reply within a few hours for PNR, booking, and refund queries.
+      </p>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
-      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md); text-align: center;">
-        <i class="fa-solid fa-phone" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
-        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Toll-Free Helpline</h4>
-        <p style="color: var(--secondary); font-weight: 700;">+91 1800-RAILAWAY</p>
-      </div>
+      <form method="POST" action="{% url 'core:contact' %}" novalidate>
+        {% csrf_token %}
 
-      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md); text-align: center;">
-        <i class="fa-solid fa-envelope" style="font-size: 2rem; color: var(--success); margin-bottom: 0.5rem;"></i>
-        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Email Support</h4>
-        <p style="color: var(--secondary); font-weight: 700;">support@railaway.com</p>
-      </div>
+        <div class="form-group">
+          <label class="form-label" for="contactName">Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 0.35rem;">{{ form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-      <div style="background: var(--bg-subtle); padding: 1.5rem; border-radius: var(--radius-md); text-align: center;">
-        <i class="fa-solid fa-clock" style="font-size: 2rem; color: var(--warning); margin-bottom: 0.5rem;"></i>
-        <h4 style="font-size: 1.05rem; margin-bottom: 0.2rem;">Working Hours</h4>
-        <p style="color: var(--secondary); font-weight: 700;">24 Hours &bull; 7 Days</p>
+        <div class="form-group">
+          <label class="form-label" for="contactEmail">Email *</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 0.35rem;">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="contactMessage">Message *</label>
+          {{ form.message }}
+          {% if form.message.errors %}
+            <p style="color: #dc2626; font-size: 0.85rem; margin-top: 0.35rem;">{{ form.message.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn contact-submit" id="contactSubmitBtn">
+          <i class="fa-solid fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+    </div>
+
+    <div class="contact-card">
+      <h2 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.4rem;">24x7 Traveler Support</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+        Prefer to talk? Reach our specialized desk by phone or email any time.
+      </p>
+
+      <div style="display: grid; gap: 1rem;">
+        <div class="support-tile">
+          <i class="fa-solid fa-phone" style="color: var(--primary); margin-bottom: 0.4rem;"></i>
+          <h4 style="font-size: 1rem; margin-bottom: 0.15rem;">Toll-Free Helpline</h4>
+          <p style="color: var(--secondary); font-weight: 700;">+91 1800-RAILAWAY</p>
+        </div>
+        <div class="support-tile">
+          <i class="fa-solid fa-envelope" style="color: #046A38; margin-bottom: 0.4rem;"></i>
+          <h4 style="font-size: 1rem; margin-bottom: 0.15rem;">Email Support</h4>
+          <p style="color: var(--secondary); font-weight: 700;">support@railaway.com</p>
+        </div>
+        <div class="support-tile">
+          <i class="fa-solid fa-clock" style="color: var(--warning); margin-bottom: 0.4rem;"></i>
+          <h4 style="font-size: 1rem; margin-bottom: 0.15rem;">Working Hours</h4>
+          <p style="color: var(--secondary); font-weight: 700;">24 Hours &bull; 7 Days</p>
+        </div>
       </div>
     </div>
   </div>
